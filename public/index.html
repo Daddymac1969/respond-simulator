@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESPOND Safeguarding Simulator</title>
+    <meta name="description" content="Interactive scenario-based safeguarding training powered by the RESPOND Framework.">
+    <link rel="icon" type="image/png" href="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6; color: #CBD5E1; background: #1a2332; min-height: 100vh;
+        }
+        :root {
+            --bg: #1a2332; --card: #243044; --card-border: #334155; --card-inner: #1e2a3a;
+            --text: #CBD5E1; --text-muted: #7a8ba3; --text-bright: #F1F5F9;
+            --accent: #ff6b35; --primary: #1e3d6f; --primary-light: #2c5aa0;
+            --dot-r: #24437b; --dot-e: #235e4b; --dot-s: #a4684e; --dot-p: #cd372b;
+            --dot-o: #ebaf24; --dot-n: #287bc9; --dot-d: #8625eb;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes dotPulse { 0%,100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 1; } }
+        .fade-in { animation: fadeIn 0.5s ease both; }
+        .dots { display: flex; gap: 8px; align-items: center; justify-content: center; }
+        .dots .d { border-radius: 50%; }
+        .dots.lg .d { width: 14px; height: 14px; }
+        .dots.md .d { width: 10px; height: 10px; }
+        .dots.sm .d { width: 7px; height: 7px; }
+        .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; padding: 32px; }
+        .card-inner { background: var(--card-inner); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; }
+
+        /* MENU */
+        .screen-menu { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .menu-wrap { max-width: 480px; width: 100%; animation: fadeIn 0.8s ease; }
+        .menu-card { text-align: center; }
+        .menu-card h1 { font-size: 36px; font-weight: 900; color: var(--text-bright); letter-spacing: -0.5px; margin: 20px 0 6px; }
+        .menu-card .subtitle { font-size: 16px; color: var(--text-muted); font-weight: 500; margin: 0 0 24px; }
+        .menu-card .desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; margin: 0 0 24px; }
+        .how-list { text-align: left; }
+        .how-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(51,65,85,0.4); }
+        .how-row:last-child { border-bottom: none; }
+        .how-num { color: var(--accent); font-weight: 700; font-size: 11px; font-family: 'DM Mono', monospace; min-width: 20px; padding-top: 2px; }
+        .how-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        .btn-primary { width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer; background: var(--card-border); color: var(--text-bright); font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif; transition: background 0.2s, transform 0.15s; margin-top: 20px; }
+        .btn-primary:hover { background: #475569; transform: translateY(-1px); }
+        .footer-text { text-align: center; margin-top: 16px; font-size: 11px; color: var(--text-muted); }
+        .footer-text a { color: var(--text-muted); text-decoration: underline; }
+
+        /* LOADING */
+        .screen-loading { display: none; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 24px; }
+        .loading-dots { display: flex; gap: 10px; }
+        .loading-dots .ld { width: 14px; height: 14px; border-radius: 50%; }
+
+        /* GAME HEADER */
+        .game-header { padding: 10px 20px; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(26,35,50,0.92); backdrop-filter: blur(12px); }
+        .hdr-left { display: flex; align-items: center; gap: 12px; }
+        .hdr-logo { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; }
+        .hdr-name { font-weight: 800; font-size: 13px; color: var(--text-bright); text-decoration: none; }
+        .hdr-right { display: flex; align-items: center; gap: 12px; }
+        .hdr-step { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+        .btn-exit { padding: 5px 12px; border-radius: 8px; background: var(--card); border: 1px solid var(--card-border); color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+        .rag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+        .rag .rd { width: 7px; height: 7px; border-radius: 50%; }
+        .rag-GREEN { background: #065F46; color: #ECFDF5; border: 1px solid #059669; } .rag-GREEN .rd { background: #ECFDF5; }
+        .rag-AMBER { background: #92400E; color: #FFFBEB; border: 1px solid #D97706; } .rag-AMBER .rd { background: #FFFBEB; }
+        .rag-RED { background: #991B1B; color: #FEF2F2; border: 1px solid #DC2626; } .rag-RED .rd { background: #FEF2F2; }
+
+        /* STEP TRACKER */
+        .step-tracker { padding: 10px 16px; border-bottom: 1px solid var(--card-border); background: var(--card-inner); display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+        .st-item { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: var(--text-muted); transition: all 0.3s; opacity: 0.4; }
+        .st-item.active, .st-item.past { opacity: 1; }
+        .st-item.active { background: rgba(255,107,53,0.12); color: var(--accent); border: 1px solid rgba(255,107,53,0.25); }
+        .st-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; transition: all 0.3s; }
+        .st-item.active .st-dot { width: 10px; height: 10px; box-shadow: 0 0 8px currentColor; }
+        .st-score { font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 10px; color: #fff; margin-left: 2px; }
+        .sc-hi { background: #059669; } .sc-mid { background: #D97706; } .sc-lo { background: #DC2626; }
+
+        /* MESSAGES */
+        .messages { max-width: 680px; margin: 0 auto; padding: 20px 16px 160px; display: flex; flex-direction: column; gap: 14px; }
+        .msg-scenario, .msg-dev { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; animation: fadeIn 0.5s ease; }
+        .msg-title { font-size: 18px; font-weight: 800; color: var(--text-bright); margin: 0 0 2px; }
+        .msg-setting { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+        .msg-body { font-size: 14px; line-height: 1.8; color: var(--text); margin: 12px 0 0; white-space: pre-wrap; }
+        .msg-prompt { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--card-inner); border-left: 3px solid var(--accent); }
+        .msg-prompt p { margin: 0; font-size: 13px; font-weight: 600; color: #93C5FD; line-height: 1.5; }
+        .msg-user { align-self: flex-end; max-width: 85%; background: var(--primary); border-radius: 16px 16px 4px 16px; padding: 12px 16px; animation: fadeIn 0.3s ease; }
+        .msg-user p { margin: 0; font-size: 13px; line-height: 1.6; color: #fff; }
+        .msg-assess { border-radius: 12px; padding: 14px; animation: fadeIn 0.5s ease; }
+        .msg-assess.normal { background: var(--card-inner); border: 1px solid var(--card-border); }
+        .msg-assess.critical { background: #2a1215; border: 1px solid #991B1B; }
+        .assess-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .assess-score { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #fff; font-weight: 800; font-size: 13px; font-family: 'DM Mono', monospace; }
+        .assess-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .crit-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #DC2626; color: #fff; }
+        .crit-detail { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: #FCA5A5; font-weight: 600; padding: 8px 12px; border-radius: 6px; background: rgba(127,29,29,0.27); }
+        .msg-error { padding: 12px; border-radius: 10px; background: #2a1215; border: 1px solid #991B1B; color: #FCA5A5; font-size: 13px; }
+        .typing { display: flex; align-items: center; gap: 8px; padding: 16px; }
+        .typing-dots { display: flex; gap: 4px; }
+        .typing-dots .td { width: 7px; height: 7px; border-radius: 50%; background: var(--primary-light); }
+        .typing-dots .td:nth-child(1) { animation: dotPulse 1s 0s infinite; }
+        .typing-dots .td:nth-child(2) { animation: dotPulse 1s 0.15s infinite; }
+        .typing-dots .td:nth-child(3) { animation: dotPulse 1s 0.3s infinite; }
+
+        /* INPUT */
+        .input-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 14px 16px 20px; background: rgba(26,35,50,0.94); backdrop-filter: blur(16px); border-top: 1px solid var(--card-border); }
+        .input-inner { max-width: 680px; margin: 0 auto; }
+        .input-row { display: flex; gap: 10px; align-items: flex-end; }
+        .input-ta { flex: 1; padding: 12px 16px; border-radius: 12px; background: var(--card); border: 1px solid var(--card-border); color: var(--text); font-size: 14px; line-height: 1.5; resize: none; font-family: 'Inter', sans-serif; }
+        .input-ta:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(44,90,160,0.15); }
+        .input-ta:disabled { opacity: 0.4; }
+        .btn-send { padding: 12px 18px; border-radius: 12px; border: none; background: var(--card-border); color: var(--text-bright); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; transition: background 0.2s; }
+        .btn-send:hover { background: #475569; }
+        .btn-send:disabled { opacity: 0.35; cursor: not-allowed; }
+        .input-foot { margin: 6px 0 0; font-size: 10px; color: var(--text-muted); text-align: center; }
+
+        /* DEBRIEF */
+        .debrief { display: flex; flex-direction: column; gap: 16px; animation: fadeIn 0.8s ease; }
+        .debrief-header { text-align: center; }
+        .debrief-title { font-size: 24px; font-weight: 900; color: var(--text-bright); margin: 0 0 8px; }
+        .debrief-scores { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; margin-top: 16px; }
+        .score-val { font-size: 32px; font-weight: 900; }
+        .score-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+        .grade-badge { font-size: 18px; font-weight: 800; padding: 6px 16px; border-radius: 8px; border: 2px solid; }
+        .debrief-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+        .db-step-card { padding: 14px; border-radius: 12px; background: var(--card-inner); border: 1px solid var(--card-border); }
+        .db-step-hdr { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .db-step-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .db-step-name { font-size: 12px; font-weight: 700; color: var(--text); }
+        .db-step-score { font-size: 22px; font-weight: 900; }
+        .db-step-score span { font-size: 11px; color: var(--text-muted); }
+        .db-step-fb { font-size: 10px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+        .db-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .db-strengths { padding: 14px; border-radius: 12px; background: #0a2e1a; border: 1px solid #065F46; }
+        .db-strengths h4 { margin: 0 0 6px; color: #34D399; font-size: 12px; font-weight: 700; }
+        .db-strengths p { margin: 3px 0; font-size: 12px; color: #A7F3D0; line-height: 1.5; }
+        .db-areas { padding: 14px; border-radius: 12px; background: #2a1a0e; border: 1px solid rgba(255,107,53,0.25); }
+        .db-areas h4 { margin: 0 0 6px; color: var(--accent); font-size: 12px; font-weight: 700; }
+        .db-areas p { margin: 3px 0; font-size: 12px; color: #FFD9C4; line-height: 1.5; }
+        .db-learning { padding: 14px; border-radius: 12px; background: rgba(30,61,111,0.3); border: 1px solid #2563EB; }
+        .db-learning h4 { margin: 0 0 6px; color: #93C5FD; font-size: 12px; font-weight: 700; }
+        .db-learning p { margin: 0; font-size: 13px; color: #DBEAFE; line-height: 1.6; }
+        .db-refs { padding: 12px; border-radius: 10px; background: var(--card-inner); border: 1px solid var(--card-border); }
+        .db-refs h4 { margin: 0 0 4px; color: var(--text-muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .db-refs p { margin: 2px 0; font-size: 11px; color: var(--text-muted); }
+        .db-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+        .btn-next { padding: 12px 24px; border-radius: 12px; border: none; background: var(--card-border); color: var(--text-bright); font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+        .btn-menu-ret { padding: 12px 24px; border-radius: 12px; background: var(--card-inner); border: 1px solid var(--card-border); color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+        @media (max-width: 600px) { .menu-card h1 { font-size: 28px; } .db-two-col { grid-template-columns: 1fr; } .st-item { padding: 3px 6px; font-size: 10px; } }
+    </style>
+</head>
+<body>
+<div id="screen-menu" class="screen-menu">
+    <div class="menu-wrap">
+        <div class="card menu-card">
+            <div class="dots lg" id="dots-hero"></div>
+            <h1>RESPOND</h1>
+            <p class="subtitle">Safeguarding Simulator</p>
+            <p class="desc">Interactive scenario-based training powered by the RESPOND Framework. Navigate realistic safeguarding situations and receive AI assessment at every decision point.</p>
+            <div class="card-inner how-list"><div id="how-items"></div></div>
+            <div id="menu-error" style="display:none;padding:10px;border-radius:10px;margin-top:14px;background:#2a1215;border:1px solid #991B1B;color:#FCA5A5;font-size:13px"></div>
+            <button class="btn-primary" onclick="startScenario()">Begin Scenario</button>
+        </div>
+        <div style="display:flex;justify-content:center;margin-top:14px"><div class="dots sm" id="dots-foot"></div></div>
+        <p class="footer-text">Contact <a href="mailto:darren@respondsafeguarding.org">darren@respondsafeguarding.org</a> if you need access credentials.</p>
+    </div>
+</div>
+<div id="screen-loading" class="screen-loading">
+    <div class="loading-dots" id="loading-dots"></div>
+    <p style="color:var(--text-muted);font-size:14px">Generating your scenario...</p>
+</div>
+<div id="screen-game" style="display:none">
+    <div class="game-header">
+        <div class="hdr-left">
+            <img src="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true" alt="RESPOND" class="hdr-logo" onerror="this.style.display='none'">
+            <a href="https://www.respondsafeguarding.org/" target="_blank" rel="noopener" class="hdr-name">RESPOND</a>
+            <div class="dots sm" id="dots-hdr"></div>
+            <span id="rag-badge" class="rag rag-GREEN"><span class="rd"></span>GREEN</span>
+        </div>
+        <div class="hdr-right">
+            <span class="hdr-step" id="header-step">STEP: RECOGNISE</span>
+            <button class="btn-exit" onclick="resetGame()">✕ Exit</button>
+        </div>
+    </div>
+    <div class="step-tracker" id="step-tracker"></div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area" id="input-area">
+        <div class="input-inner">
+            <div class="input-row">
+                <textarea id="user-input" class="input-ta" rows="2" placeholder="Describe what you would do in this situation..."></textarea>
+                <button id="btn-submit" class="btn-send" onclick="submitResponse()">Submit →</button>
+            </div>
+            <p class="input-foot">Press Enter to submit · Shift+Enter for new line · Training simulation only</p>
+        </div>
+    </div>
+</div>
+<script>
+const STEPS = [
+    { key: "RECOGNISE", letter: "R", color: "#24437b", label: "Recognise", sub: "Identify the concern" },
+    { key: "ENGAGE", letter: "E", color: "#235e4b", label: "Engage", sub: "Communicate effectively" },
+    { key: "SUPPORT", letter: "S", color: "#a4684e", label: "Support", sub: "Maintain composure" },
+    { key: "PAUSE", letter: "P", color: "#cd372b", label: "Pause", sub: "Consider your approach" },
+    { key: "OFFER", letter: "O", color: "#ebaf24", label: "Offer", sub: "Model alternatives" },
+    { key: "NOTIFY", letter: "N", color: "#287bc9", label: "Notify", sub: "Report the issue" },
+    { key: "DOCUMENT", letter: "D", color: "#8625eb", label: "Document", sub: "Record observations" },
+];
+const HOW_ITEMS = [
+    "You're placed in a realistic school scenario with subtle safeguarding indicators",
+    "Identify the concern and decide how to respond at each RESPOND step",
+    "AI assesses your decisions against best practice — in real-time",
+    "The scenario develops dynamically based on your choices",
+    "Receive a full debrief with step-by-step scoring and statutory references",
+];
+const SCENARIO_TYPES = [
+    "A nuanced scenario involving possible emotional abuse with cultural complexity",
+    "A scenario involving concerning online behaviour and potential grooming",
+    "A scenario involving peer-on-peer abuse disguised as normal social dynamics",
+    "A scenario involving a student showing signs of neglect in a boarding context",
+    "A scenario involving possible exploitation with contextual safeguarding factors",
+    "A scenario involving self-harm indicators masked by academic pressure",
+    "A scenario involving discrimination and identity-based harm",
+    "A scenario involving a student displaying signs of radicalisation",
+    "A scenario involving concerning staff-student boundary issues",
+    "A scenario involving child-on-child sexual harassment normalised by peers",
+];
+
+const SYSTEM_PROMPT = "You are the RESPOND Safeguarding Training Simulator \u2014 an AI engine for an interactive safeguarding training game used in UK schools (particularly international boarding schools). The RESPOND Framework is from respondsafeguarding.org.\n\n## YOUR ROLE\nYou guide staff through realistic safeguarding scenarios, assessing their decisions against the RESPOND framework (Recognise \u2192 Engage \u2192 Support \u2192 Pause \u2192 Offer \u2192 Notify \u2192 Document).\n\n## THE RESPOND FRAMEWORK\n\n**R \u2013 RECOGNISE (Identify the concern)**: Identify safeguarding signs and trust your observations. Professional curiosity; noticing changes; cultural awareness. Ask: what type of harm? Who is involved? What context factors (people/places/platforms/patterns)?\n\n**E \u2013 ENGAGE (Communicate effectively)**: Approach students with empathy and respect to build trust. Non-judgmental; age-appropriate; avoid leading questions. Use TED questions (Tell me, Explain, Describe \u2014 NOT \"why\"). Say: \"I believe you. This is not your fault. You're safe right now.\"\n\n**S \u2013 SUPPORT (Maintain composure)**: Consider what immediate emotional and practical assistance is tailored to needs. Validate without investigating; meet basic needs; cultural humility. Safety check: \"Are you safe now? Need medical attention?\" Provide private space, water, reassurance.\n\n**P \u2013 PAUSE (Consider your approach)**: Take time to think carefully before acting to ensure appropriate response. DON'T investigate, promise secrecy, blame victim, or promise outcomes. Check policy; avoid investigation impulse. Use Three Lenses: Risk \u2022 Rights \u2022 Resources.\n\n**O \u2013 OFFER (Model alternatives)**: Identify relevant services and resources promptly. Only offer what you can deliver; respect autonomy where safe. Explain next steps: DSL notification, possible police/CSC, parent contact. Support options: school counselor, trusted adult, external services.\n\n**N \u2013 NOTIFY (Report the issue)**: Inform designated safeguarding leads and senior managers as required. Within 30 minutes (immediately if crime in progress). Report: time, student details, what was disclosed, safety concerns, alleged perpetrator, evidence mentioned (NOT viewed). DSL coordinates with Police, CSC, SARC, parents.\n\n**D \u2013 DOCUMENT (Record observations)**: Keep accurate, detailed records of safeguarding actions and observations. Record within 30 minutes. Use exact words: \"Student said: [quote]\" \u2014 NO paraphrasing. Include: date, time, location, who present, student's words, demeanour, your actions. Use GOLD format (Ground, Observe, Language, Do).\n\n## RAG THRESHOLDS\n- **GREEN**: Low-level concern, monitor and record.\n- **AMBER**: Escalating concern or pattern. DSL must assess.\n- **RED**: Immediate risk of significant harm. DSL notified NOW.\n\n## GAME MECHANICS\n\n### When asked to generate a scenario:\nCreate a realistic, nuanced scenario for an international boarding school. The scenario should:\n- NOT reveal what the safeguarding issue is \u2014 staff must identify it\n- Include subtle indicators that require professional curiosity\n- Have cultural, contextual, or environmental complexity\n- Unfold in layers\n- Be challenging but realistic\n\nRespond with ONLY valid JSON (no markdown, no backticks):\n{\n  \"scenario_id\": \"unique_id\",\n  \"title\": \"Brief evocative title\",\n  \"setting\": \"Where/when this takes place\",\n  \"initial_observation\": \"What the staff member sees/hears — 3-5 sentences MAX, concise but vivid, NO safeguarding labels\",\n  \"hidden_issue\": \"FOR SCORING ONLY - what is actually happening\",\n  \"severity\": \"GREEN|AMBER|RED\",\n  \"key_indicators\": [\"indicator1\", \"indicator2\", \"indicator3\"],\n  \"respond_step\": \"RECOGNISE\",\n  \"prompt_to_user\": \"A question asking the user what they notice and what they would do\"\n}\n\n### When assessing a user response:\nEvaluate against the current RESPOND step. Consider:\n- Did they identify the right concern?\n- Did they take appropriate action?\n- Did they avoid common pitfalls?\n- Was their response trauma-informed and culturally sensitive?\n\nRespond with ONLY valid JSON:\n{\n  \"score\": 1-10,\n  \"assessment\": \"Brief, specific feedback\",\n  \"respond_step_met\": true/false,\n  \"critical_miss\": true/false,\n  \"critical_miss_detail\": \"Only if critical_miss is true\",\n  \"next_development\": \"The scenario develops further — 2-3 sentences MAX, keep it tight\",\n  \"current_step\": \"RECOGNISE|ENGAGE|SUPPORT|PAUSE|OFFER|NOTIFY|DOCUMENT\",\n  \"prompt_to_user\": \"Next question\",\n  \"case_concluded\": false,\n  \"rag_status\": \"GREEN|AMBER|RED\"\n}\n\n### When concluding a case:\n{\n  \"score\": 1-10,\n  \"assessment\": \"Final comprehensive feedback\",\n  \"respond_step_met\": true,\n  \"case_concluded\": true,\n  \"final_debrief\": {\n    \"overall_score\": 1-100,\n    \"grade\": \"Outstanding|Good|Requires Improvement|Inadequate\",\n    \"rag_final\": \"GREEN|AMBER|RED\",\n    \"step_scores\": {\n      \"RECOGNISE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"ENGAGE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"SUPPORT\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"PAUSE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"OFFER\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"NOTIFY\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"DOCUMENT\": {\"score\": 1-10, \"feedback\": \"...\"}\n    },\n    \"strengths\": [\"strength1\", \"strength2\"],\n    \"areas_for_development\": [\"area1\", \"area2\"],\n    \"key_learning\": \"The most important takeaway\",\n    \"statutory_references\": [\"KCSIE 2025 reference\", \"Working Together 2023 reference\"]\n  },\n  \"next_development\": \"\",\n  \"current_step\": \"COMPLETE\",\n  \"prompt_to_user\": \"\"\n}\n\n## RULES\n- Never reveal the hidden issue until the debrief\n- Make scenarios culturally nuanced (international boarding school)\n- Include red herrings \u2014 real life is messy\n- Reward professional curiosity, penalise assumptions\n- Flag dangerous choices as critical_miss\n- Keep tone supportive and educational\n- Keep ALL text outputs CONCISE — scenarios 3-5 sentences, developments 2-3 sentences, assessments 1-2 sentences. Staff need to make decisions quickly, not read essays\n\n## INTERNATIONAL SCHOOL TERMINOLOGY\nUse international school terms throughout:\n- \"Grade\" (NOT \"Year\") \u2014 e.g. \"Grade 9 student\", \"Grade 11\"\n- \"Faculty\" or \"staff\" (NOT \"teachers\" alone)\n- \"Campus\" (NOT \"school grounds\")\n- \"Dorm\" or \"boarding house\" (NOT \"house\" alone)\n- \"Semester\" or \"trimester\" (NOT \"term\")\n- \"Parent conference\" (NOT \"parents' evening\")\n- \"College counselor\" (NOT \"careers adviser\")\n- Students may hold multiple passports and move between countries\n\n## ANTI-BIAS REQUIREMENTS \u2014 CRITICAL\nYou MUST ensure diversity and avoid stereotypical patterns:\n- Vary student names across a WIDE range of ethnicities, nationalities, and cultural backgrounds \u2014 British, American, European, African, South Asian, East Asian, Middle Eastern, Latin American, mixed heritage\n- NEVER default to East Asian names for academic pressure scenarios\n- NEVER default to any single ethnicity for any scenario type\n- Vary gender, sexual orientation, family structures, socioeconomic backgrounds\n- Include students from the host country (British) as well as international students\n- Perpetrators and victims should reflect realistic diversity \u2014 harm crosses all demographics\n- Avoid reinforcing stereotypes about any cultural group\n- If generating multiple scenarios in sequence, actively vary the demographics each time";
+
+let state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScores:{}, conversationHistory:[], scenarioCount:0, loading:false, scenarioTitle:"", scenarioSetting:"", hiddenIssue:"", userResponses:[] };
+
+// ═══ CONFIG ═══
+// Set your Google Apps Script web app URL here after deploying the sheet logger
+const GOOGLE_SHEET_WEBHOOK = ""; // e.g. "https://script.google.com/macros/s/XXXX/exec"
+let lastDebrief = null;
+
+function makeDots(id) { const el=document.getElementById(id); if(!el)return; el.innerHTML=STEPS.map(s=>`<div class="d" style="background:${s.color}" title="${s.label}"></div>`).join(""); }
+function ragHtml(status) { return `<span class="rag rag-${status}"><span class="rd"></span>${status}</span>`; }
+function esc(t) { const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
+
+function initUI() {
+    document.getElementById("how-items").innerHTML = HOW_ITEMS.map((t,i)=>`<div class="how-row" style="animation:fadeIn 0.4s ease ${0.2+i*0.08}s both"><span class="how-num">0${i+1}</span><span class="how-text">${t}</span></div>`).join("");
+    makeDots("dots-hero"); makeDots("dots-foot"); makeDots("dots-hdr");
+    document.getElementById("loading-dots").innerHTML = STEPS.map((s,i)=>`<div class="ld" style="background:${s.color};animation:dotPulse 1.4s ease ${i*0.15}s infinite"></div>`).join("");
+    document.getElementById("user-input").addEventListener("keydown", e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitResponse();} });
+}
+
+function renderStepTracker() {
+    const el=document.getElementById("step-tracker"); const ci=STEPS.findIndex(s=>s.key===state.currentStep);
+    el.innerHTML=STEPS.map((step,i)=>{
+        const active=step.key===state.currentStep; const past=i<ci||state.currentStep==="COMPLETE";
+        const cls=active?"active":past?"past":""; const dc=(active||past)?step.color:"#374151";
+        const score=state.stepScores[step.key]; let sb="";
+        if(score!==undefined){const sc=score>=7?"sc-hi":score>=4?"sc-mid":"sc-lo";sb=`<span class="st-score ${sc}">${score}</span>`;}
+        return `<div class="st-item ${cls}"><span class="st-dot" style="background:${dc}"></span>${step.label}${sb}</div>`;
+    }).join("");
+}
+
+function showScreen(n) { ["screen-menu","screen-loading","screen-game"].forEach(id=>{document.getElementById(id).style.display="none";}); const el=document.getElementById(`screen-${n}`); el.style.display=(n==="menu"||n==="loading")?"flex":"block"; }
+function resetGame() { state={phase:"menu",currentStep:"RECOGNISE",ragStatus:"GREEN",stepScores:{},conversationHistory:[],scenarioCount:state.scenarioCount,loading:false,scenarioTitle:"",scenarioSetting:"",hiddenIssue:"",userResponses:[]}; document.getElementById("messages").innerHTML=""; document.getElementById("input-area").style.display="block"; showScreen("menu"); }
+
+async function callAPI(userMessage, isNew) {
+    const msgs=isNew?[{role:"user",content:userMessage}]:[...state.conversationHistory,{role:"user",content:userMessage}];
+    const res=await fetch("/.netlify/functions/respond-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:SYSTEM_PROMPT,messages:msgs})});
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||`API error: ${res.status}`);}
+    const data=await res.json(); const text=data.content?.map(c=>c.text||"").join("")||"";
+    let cleaned=text.trim(); if(cleaned.startsWith("```"))cleaned=cleaned.replace(/```json?\n?/g,"").replace(/```$/g,"").trim();
+    const parsed=JSON.parse(cleaned); state.conversationHistory=[...msgs,{role:"assistant",content:text}]; return parsed;
+}
+
+function addMsg(html){const a=document.getElementById("messages");a.insertAdjacentHTML("beforeend",html);a.lastElementChild?.scrollIntoView({behavior:"smooth"});}
+function renderScenario(d){let h=`<div class="msg-scenario fade-in">`;if(d.title){h+=`<div style="margin-bottom:10px"><h2 class="msg-title">${esc(d.title)}</h2>`;if(d.setting)h+=`<span class="msg-setting">${esc(d.setting)}</span>`;h+=`</div>`;}h+=`<p class="msg-body">${esc(d.text)}</p>`;if(d.prompt)h+=`<div class="msg-prompt"><p>${esc(d.prompt)}</p></div>`;h+=`</div>`;addMsg(h);}
+function renderUser(text){addMsg(`<div class="msg-user fade-in"><p>${esc(text)}</p></div>`);}
+function renderAssess(d){const cls=d.critical?"critical":"normal";const bg=d.score>=7?"#065F46":d.score>=4?"#78350F":"#7F1D1D";const lc=d.score>=7?"#34D399":d.score>=4?"#FBBF24":"#F87171";const lt=d.score>=7?"Strong Response":d.score>=4?"Adequate":"Needs Improvement";let h=`<div class="msg-assess ${cls} fade-in"><div class="assess-hdr"><span class="assess-score" style="background:${bg}">${d.score}</span><span class="assess-label" style="color:${lc}">${lt}</span>${d.critical?'<span class="crit-badge">⚠ CRITICAL</span>':''}</div><p style="margin:0;font-size:13px;line-height:1.6;color:${d.critical?'#FCA5A5':'var(--text-muted)'}">${esc(d.text)}</p>`;if(d.critical&&d.criticalDetail)h+=`<p class="crit-detail">⚠ ${esc(d.criticalDetail)}</p>`;h+=`</div>`;addMsg(h);}
+function renderDev(d){let h=`<div class="msg-dev fade-in"><p class="msg-body">${esc(d.text)}</p>`;if(d.prompt)h+=`<div class="msg-prompt"><p>${esc(d.prompt)}</p></div>`;h+=`</div>`;addMsg(h);}
+function showTyping(){addMsg(`<div class="typing fade-in" id="typing"><div class="typing-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div><span style="color:var(--text-muted);font-size:12px">Assessing your response...</span></div>`);}
+function hideTyping(){document.getElementById("typing")?.remove();}
+
+// ═══ PDF DOWNLOAD ═══
+function downloadPDF(debriefData) {
+    const d = debriefData;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = 210; const M = 20; const CW = W - 2*M;
+    let y = 20;
+    const colors = { r:[36,67,123], e:[35,94,75], s:[164,104,78], p:[205,55,43], o:[235,175,36], n:[40,123,201], d:[134,37,235] };
+
+    // Header dots
+    const dotR = 3; const dotGap = 10; const dotsW = 7*dotR*2 + 6*dotGap;
+    let dx = (W - dotsW) / 2;
+    STEPS.forEach(s => { const c = colors[s.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(dx+dotR, y+dotR, dotR, "F"); dx += dotR*2 + dotGap; });
+    y += 14;
+
+    // Title
+    doc.setFont("helvetica","bold"); doc.setFontSize(22); doc.setTextColor(30,30,30);
+    doc.text("RESPOND — Case Debrief", W/2, y, {align:"center"}); y += 8;
+    doc.setFontSize(10); doc.setTextColor(120,120,120);
+    doc.text(`${state.scenarioTitle}  |  ${new Date().toLocaleDateString("en-GB")}`, W/2, y, {align:"center"}); y += 12;
+
+    // Scores bar
+    doc.setFillColor(240,240,245); doc.roundedRect(M, y, CW, 20, 3, 3, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    const sc = d.overall_score >= 75 ? [5,150,105] : d.overall_score >= 50 ? [217,119,6] : [220,38,38];
+    doc.setTextColor(sc[0],sc[1],sc[2]); doc.text(`${d.overall_score} / 100`, M+15, y+13);
+    doc.setFontSize(11); doc.setTextColor(60,60,60);
+    const gc = {"Outstanding":[5,150,105],"Good":[37,99,235],"Requires Improvement":[217,119,6],"Inadequate":[220,38,38]};
+    const gclr = gc[d.grade]||[60,60,60]; doc.setTextColor(gclr[0],gclr[1],gclr[2]);
+    doc.text(d.grade, M+55, y+13);
+    doc.setTextColor(100,100,100); doc.text(`RAG: ${d.rag_final}`, M+CW-15, y+13, {align:"right"});
+    y += 28;
+
+    // Step scores
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(30,30,30);
+    doc.text("Step Scores", M, y); y += 6;
+    STEPS.forEach(step => {
+        const s = d.step_scores?.[step.key]; if(!s) return;
+        if (y > 265) { doc.addPage(); y = 20; }
+        const c = colors[step.letter.toLowerCase()];
+        doc.setFillColor(c[0],c[1],c[2]); doc.circle(M+3, y+3, 2.5, "F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,30,30);
+        doc.text(`${step.label}`, M+9, y+4.5);
+        const sclr = s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38];
+        doc.setTextColor(sclr[0],sclr[1],sclr[2]); doc.text(`${s.score}/10`, M+45, y+4.5);
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(80,80,80);
+        const lines = doc.splitTextToSize(s.feedback, CW-55);
+        doc.text(lines, M+55, y+4.5); y += Math.max(8, lines.length*4 + 4);
+    });
+    y += 6;
+
+    // Strengths & Areas
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(5,150,105);
+    doc.text("Strengths", M, y); y += 5;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    (d.strengths||[]).forEach(s => { const l=doc.splitTextToSize(`• ${s}`,CW); doc.text(l,M,y); y+=l.length*4+2; });
+    y += 4;
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(255,107,53);
+    doc.text("Areas for Development", M, y); y += 5;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    (d.areas_for_development||[]).forEach(s => { const l=doc.splitTextToSize(`• ${s}`,CW); doc.text(l,M,y); y+=l.length*4+2; });
+    y += 4;
+
+    // Key learning
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(37,99,235);
+    doc.text("Key Learning", M, y); y += 5;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    const kl = doc.splitTextToSize(d.key_learning, CW); doc.text(kl, M, y); y += kl.length*4 + 4;
+
+    // Statutory refs
+    if (d.statutory_references?.length) {
+        if (y > 255) { doc.addPage(); y = 20; }
+        doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(120,120,120);
+        doc.text("STATUTORY REFERENCES", M, y); y += 4;
+        doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(140,140,140);
+        d.statutory_references.forEach(r => { const l=doc.splitTextToSize(r,CW); doc.text(l,M,y); y+=l.length*3.5+2; });
+    }
+
+    // Footer
+    doc.setFontSize(7); doc.setTextColor(160,160,160);
+    doc.text("RESPOND Safeguarding Simulator — respondsafeguarding.org — Training purposes only", W/2, 290, {align:"center"});
+
+    const fname = `RESPOND_Debrief_${state.scenarioTitle.replace(/[^a-zA-Z0-9]/g,"_").substring(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(fname);
+}
+
+// ═══ GOOGLE SHEET LOGGER ═══
+async function logToSheet(debriefData) {
+    if (!GOOGLE_SHEET_WEBHOOK) return; // Skip if not configured
+    try {
+        const d = debriefData;
+        const payload = {
+            timestamp: new Date().toISOString(),
+            scenario_title: state.scenarioTitle,
+            scenario_setting: state.scenarioSetting,
+            hidden_issue: state.hiddenIssue,
+            overall_score: d.overall_score,
+            grade: d.grade,
+            rag_final: d.rag_final,
+            score_recognise: d.step_scores?.RECOGNISE?.score || "",
+            score_engage: d.step_scores?.ENGAGE?.score || "",
+            score_support: d.step_scores?.SUPPORT?.score || "",
+            score_pause: d.step_scores?.PAUSE?.score || "",
+            score_offer: d.step_scores?.OFFER?.score || "",
+            score_notify: d.step_scores?.NOTIFY?.score || "",
+            score_document: d.step_scores?.DOCUMENT?.score || "",
+            strengths: (d.strengths||[]).join(" | "),
+            areas_for_development: (d.areas_for_development||[]).join(" | "),
+            key_learning: d.key_learning || "",
+            statutory_references: (d.statutory_references||[]).join(" | "),
+            user_responses: state.userResponses.map(r => `[${r.step}] ${r.response}`).join(" || "),
+        };
+        await fetch(GOOGLE_SHEET_WEBHOOK, {
+            method: "POST", mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    } catch (e) { console.warn("Sheet log failed:", e); }
+}
+
+function renderDebrief(data){
+    const d=data.final_debrief;const gc={"Outstanding":"#059669","Good":"#2563EB","Requires Improvement":"#D97706","Inadequate":"#DC2626"};const gclr=gc[d.grade]||"#fff";const sc=d.overall_score>=75?"#059669":d.overall_score>=50?"#D97706":"#DC2626";
+    document.getElementById("input-area").style.display="none";
+    let h=`<div class="debrief"><div class="card debrief-header"><div class="dots md" id="dots-db"></div><h2 class="debrief-title" style="margin-top:12px">Case Debrief</h2><div class="debrief-scores"><div style="text-align:center"><div class="score-val" style="color:${sc}">${d.overall_score}<span style="font-size:14px;color:var(--text-muted)"> / 100</span></div><div class="score-sub">OVERALL</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:10px"><span class="grade-badge" style="color:${gclr};border-color:${gclr}">${d.grade}</span>${ragHtml(d.rag_final)}</div></div></div>`;
+    h+=`<div class="debrief-steps">`;
+    STEPS.forEach(step=>{const s=d.step_scores?.[step.key];if(!s)return;const c=s.score>=7?"#34D399":s.score>=4?"#FBBF24":"#F87171";h+=`<div class="db-step-card"><div class="db-step-hdr"><span class="db-step-dot" style="background:${step.color}"></span><span class="db-step-name">${step.label}</span></div><div class="db-step-score" style="color:${c}">${s.score}<span>/10</span></div><div class="db-step-fb">${esc(s.feedback)}</div></div>`;});
+    h+=`</div><div class="db-two-col"><div class="db-strengths"><h4>✓ Strengths</h4>${(d.strengths||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div><div class="db-areas"><h4>⚡ Development Areas</h4>${(d.areas_for_development||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div></div>`;
+    h+=`<div class="db-learning"><h4>📚 Key Learning</h4><p>${esc(d.key_learning)}</p></div>`;
+    if(d.statutory_references?.length)h+=`<div class="db-refs"><h4>Statutory References</h4>${d.statutory_references.map(r=>`<p>${esc(r)}</p>`).join("")}</div>`;
+    h+=`<div class="db-actions"><button class="btn-next" onclick="downloadPDF(lastDebrief)" title="Download PDF">📄 Download PDF</button><button class="btn-next" onclick="startScenario()">Next Scenario →</button><button class="btn-menu-ret" onclick="resetGame()">Return to Menu</button></div></div>`;
+    addMsg(h); setTimeout(()=>makeDots("dots-db"),50);
+    lastDebrief=d; logToSheet(d);
+}
+
+async function startScenario(){
+    showScreen("loading");document.getElementById("menu-error").style.display="none";
+    state.stepScores={};state.currentStep="RECOGNISE";state.ragStatus="GREEN";state.conversationHistory=[];state.loading=false;
+    document.getElementById("messages").innerHTML="";document.getElementById("input-area").style.display="block";
+    try{const type=SCENARIO_TYPES[state.scenarioCount%SCENARIO_TYPES.length];state.scenarioCount++;
+    const data=await callAPI(`Generate a new safeguarding training scenario. Type: ${type}. Make it realistic for an international boarding school setting. Remember: do NOT reveal the safeguarding issue in the scenario text — staff must identify it themselves. Respond with ONLY valid JSON.`,true);
+    state.ragStatus=data.severity||"GREEN";state.scenarioTitle=data.title||"";state.scenarioSetting=data.setting||"";state.hiddenIssue=data.hidden_issue||"";state.userResponses=[];updateRAG();updateStep();renderStepTracker();showScreen("game");
+    renderScenario({title:data.title,setting:data.setting,text:data.initial_observation,prompt:data.prompt_to_user});
+    document.getElementById("user-input").focus();
+    }catch(err){const el=document.getElementById("menu-error");el.textContent="Failed to generate scenario: "+err.message;el.style.display="block";showScreen("menu");}
+}
+
+async function submitResponse(){
+    const input=document.getElementById("user-input").value.trim();if(!input||state.loading)return;
+    document.getElementById("user-input").value="";state.loading=true;document.getElementById("btn-submit").disabled=true;document.getElementById("user-input").disabled=true;
+    renderUser(input);state.userResponses.push({step:state.currentStep,response:input});showTyping();
+    try{const data=await callAPI(`The user (staff member in training) responded to the current scenario at the ${state.currentStep} step:\n\n"${input}"\n\nAssess their response against the RESPOND framework ${state.currentStep} step requirements. Then develop the scenario further based on their choice. If they've now addressed enough RESPOND steps (at least through NOTIFY), you can move toward concluding the case. Respond with ONLY valid JSON.`,false);
+    hideTyping();if(data.rag_status){state.ragStatus=data.rag_status;updateRAG();}
+    if(data.score&&state.currentStep!=="COMPLETE")state.stepScores[state.currentStep]=data.score;
+    if(data.current_step){state.currentStep=data.current_step;updateStep();}renderStepTracker();
+    if(data.case_concluded&&data.final_debrief){renderAssess({score:data.score,text:data.assessment,critical:data.critical_miss,criticalDetail:data.critical_miss_detail});renderDebrief(data);}
+    else{renderAssess({score:data.score,text:data.assessment,critical:data.critical_miss,criticalDetail:data.critical_miss_detail});renderDev({text:data.next_development,prompt:data.prompt_to_user});}
+    }catch(err){hideTyping();addMsg(`<div class="msg-error fade-in">Failed to process: ${esc(err.message)}. Please try again.</div>`);}
+    state.loading=false;document.getElementById("btn-submit").disabled=false;document.getElementById("user-input").disabled=false;document.getElementById("user-input").focus();
+}
+
+function updateRAG(){const el=document.getElementById("rag-badge");el.className=`rag rag-${state.ragStatus}`;el.innerHTML=`<span class="rd"></span>${state.ragStatus}`;}
+function updateStep(){document.getElementById("header-step").textContent=state.currentStep==="COMPLETE"?"COMPLETE":`STEP: ${state.currentStep}`;}
+document.addEventListener("DOMContentLoaded",initUI);
+
+</script>
+</body>
+</html>
