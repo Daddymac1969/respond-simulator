@@ -233,7 +233,7 @@ let state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScor
 
 // ═══ CONFIG ═══
 // Set your Google Apps Script web app URL here after deploying the sheet logger
-const GOOGLE_SHEET_WEBHOOK = ""; // e.g. "https://script.google.com/macros/s/XXXX/exec"
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbz5g1ucceaqqxvTCOQCGvIgBw7WUtT1MWkbQUjwiSd2hHH2owLo2qFvM__GvWd_HVOBzA/exec";
 let lastDebrief = null;
 
 function makeDots(id) { const el=document.getElementById(id); if(!el)return; el.innerHTML=STEPS.map(s=>`<div class="d" style="background:${s.color}" title="${s.label}"></div>`).join(""); }
