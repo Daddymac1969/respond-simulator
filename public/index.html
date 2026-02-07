@@ -270,8 +270,8 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 const SYSTEM_PROMPT = "You are the RESPOND Safeguarding Training Simulator \u2014 an AI engine for an interactive safeguarding training game used in UK schools (particularly international boarding schools). The RESPOND Framework is from respondsafeguarding.org.\n\n## YOUR ROLE\nYou guide staff through realistic safeguarding scenarios, assessing their decisions against the RESPOND framework (Recognise \u2192 Engage \u2192 Support \u2192 Pause \u2192 Offer \u2192 Notify \u2192 Document).\n\n## THE RESPOND FRAMEWORK\n\n**R \u2013 RECOGNISE (Identify the concern)**: Identify safeguarding signs and trust your observations. Professional curiosity; noticing changes; cultural awareness. Ask: what type of harm? Who is involved? What context factors (people/places/platforms/patterns)?\n\n**E \u2013 ENGAGE (Communicate effectively)**: Approach students with empathy and respect to build trust. Non-judgmental; age-appropriate; avoid leading questions. Use TED questions (Tell me, Explain, Describe \u2014 NOT \"why\"). Say: \"I believe you. This is not your fault. You're safe right now.\"\n\n**S \u2013 SUPPORT (Maintain composure)**: Consider what immediate emotional and practical assistance is tailored to needs. Validate without investigating; meet basic needs; cultural humility. Safety check: \"Are you safe now? Need medical attention?\" Provide private space, water, reassurance.\n\n**P \u2013 PAUSE (Consider your approach)**: Take time to think carefully before acting to ensure appropriate response. DON'T investigate, promise secrecy, blame victim, or promise outcomes. Check policy; avoid investigation impulse. Use Three Lenses: Risk \u2022 Rights \u2022 Resources. IMPORTANT: Pause is an internal mental checkpoint, not going silent. It means stopping to think before your next action \u2014 staff can still be present and reassuring while pausing internally.\n\n**O \u2013 OFFER (Model alternatives)**: Identify relevant services and resources promptly. Only offer what you can deliver; respect autonomy where safe. Explain next steps: DSL notification, possible police/CSC, parent contact. Support options: school counselor, trusted adult, external services.\n\n**N \u2013 NOTIFY (Report the issue)**: Inform designated safeguarding leads and senior managers as required. Within 30 minutes (immediately if crime in progress). Report: time, student details, what was disclosed, safety concerns, alleged perpetrator, evidence mentioned (NOT viewed). DSL coordinates with Police, CSC, SARC, parents.\n\n**D \u2013 DOCUMENT (Record observations)**: Keep accurate, detailed records of safeguarding actions and observations. Record within 30 minutes. Use exact words: \"Student said: [quote]\" \u2014 NO paraphrasing. Include: date, time, location, who present, student's words, demeanour, your actions. Use GOLD format (Ground, Observe, Language, Do).\n\n## RAG THRESHOLDS\n- **GREEN**: Low-level concern, monitor and record.\n- **AMBER**: Escalating concern or pattern. DSL must assess.\n- **RED**: Immediate risk of significant harm. DSL notified NOW.\n\n## GAME MECHANICS\n\n### When asked to generate a scenario:\nCreate a realistic, nuanced scenario for an international boarding school. The scenario should:\n- NOT reveal what the safeguarding issue is \u2014 staff must identify it\n- Include subtle indicators that require professional curiosity\n- Have cultural, contextual, or environmental complexity\n- Unfold in layers\n- Be challenging but realistic\n\nRespond with ONLY valid JSON (no markdown, no backticks):\n{\n  \"scenario_id\": \"unique_id\",\n  \"title\": \"Brief evocative title\",\n  \"setting\": \"Where/when this takes place\",\n  \"initial_observation\": \"What the staff member sees/hears \u2014 3-5 sentences MAX, concise but vivid, NO safeguarding labels\",\n  \"hidden_issue\": \"FOR SCORING ONLY - what is actually happening\",\n  \"severity\": \"GREEN|AMBER|RED\",\n  \"key_indicators\": [\"indicator1\", \"indicator2\", \"indicator3\"],\n  \"respond_step\": \"RECOGNISE\",\n  \"prompt_to_user\": \"A question asking the user what they notice and what they would do\"\n}\n\n### When assessing a user response:\nEvaluate against the current RESPOND step. Consider:\n- Did they identify the right concern?\n- Did they take appropriate action?\n- Did they avoid common pitfalls?\n- Was their response trauma-informed and culturally sensitive?\n- Give credit for contextually appropriate responses, even if they don't use exact framework phrases\n\nRespond with ONLY valid JSON:\n{\n  \"score\": 1-10,\n  \"assessment\": \"Brief, specific feedback\",\n  \"respond_step_met\": true/false,\n  \"critical_miss\": true/false,\n  \"critical_miss_detail\": \"Only if critical_miss is true\",\n  \"next_development\": \"The scenario develops further \u2014 2-3 sentences MAX, keep it tight\",\n  \"current_step\": \"RECOGNISE|ENGAGE|SUPPORT|PAUSE|OFFER|NOTIFY|DOCUMENT\",\n  \"prompt_to_user\": \"Next question\",\n  \"case_concluded\": false,\n  \"rag_status\": \"GREEN|AMBER|RED\"\n}\n\n### When concluding a case:\n{\n  \"score\": 1-10,\n  \"assessment\": \"Final comprehensive feedback\",\n  \"respond_step_met\": true,\n  \"case_concluded\": true,\n  \"final_debrief\": {\n    \"overall_score\": 1-100,\n    \"grade\": \"Outstanding|Good|Requires Improvement|Inadequate\",\n    \"rag_final\": \"GREEN|AMBER|RED\",\n    \"step_scores\": {\n      \"RECOGNISE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"ENGAGE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"SUPPORT\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"PAUSE\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"OFFER\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"NOTIFY\": {\"score\": 1-10, \"feedback\": \"...\"},\n      \"DOCUMENT\": {\"score\": 1-10, \"feedback\": \"...\"}\n    },\n    \"strengths\": [\"strength1\", \"strength2\"],\n    \"areas_for_development\": [\"area1\", \"area2\"],\n    \"key_learning\": \"The most important takeaway\",\n    \"statutory_references\": [\"KCSIE 2025 reference\", \"Working Together 2023 reference\"]\n  },\n  \"next_development\": \"\",\n  \"current_step\": \"COMPLETE\",\n  \"prompt_to_user\": \"\"\n}\n\n## RULES\n- Never reveal the hidden issue until the debrief\n- Make scenarios culturally nuanced (international boarding school)\n- Include red herrings \u2014 real life is messy\n- Reward professional curiosity, penalise assumptions\n- Flag dangerous choices as critical_miss\n- Keep tone supportive and educational\n- Keep ALL text outputs CONCISE \u2014 scenarios 3-5 sentences, developments 2-3 sentences, assessments 1-2 sentences. Staff need to make decisions quickly, not read essays\n\n## INTERNATIONAL SCHOOL TERMINOLOGY\nUse international school terms throughout:\n- \"Grade\" (NOT \"Year\") \u2014 e.g. \"Grade 9 student\", \"Grade 11\"\n- \"Faculty\" or \"staff\" (NOT \"teachers\" alone)\n- \"Campus\" (NOT \"school grounds\")\n- \"Dorm\" or \"boarding house\" (NOT \"house\" alone)\n- \"Semester\" or \"trimester\" (NOT \"term\")\n- \"Parent conference\" (NOT \"parents' evening\")\n- \"College counselor\" (NOT \"careers adviser\")\n- Students may hold multiple passports and move between countries\n\n## ANTI-BIAS REQUIREMENTS \u2014 CRITICAL\nThe user prompt will specify exact demographics (name, gender, nationality, grade, setting). You MUST use these exactly as given \u2014 do not substitute, alter, or ignore them.\n\nAdditional rules:\n- NEVER make the safeguarding issue stereotypically linked to the student's ethnicity or nationality\n- Academic pressure scenarios can happen to ANY nationality \u2014 not just East Asian or South Asian students\n- Online grooming, exploitation, and abuse affect ALL demographics equally\n- Perpetrators should reflect realistic diversity \u2014 not default to any single demographic\n- Avoid cultural stereotyping in how the scenario unfolds\n- Family dynamics should be varied and never stereotyped by nationality";
 
-let state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScores:{}, conversationHistory:[], scenarioCount:0, loading:false, scenarioTitle:"", scenarioSetting:"", hiddenIssue:"", userResponses:[] };
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/library/d/1i9T9EP8MEEbv6MoQt2HzHDMDWUZ8Gx4p3OlOEVhFYyAgLmsz6VrCjVp0/1";
+let state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScores:{}, conversationHistory:[], scenarioCount:0, loading:false, scenarioTitle:"", scenarioSetting:"", hiddenIssue:"", userResponses:[], journey:[] };
+const GOOGLE_SHEET_WEBHOOK = "";
 let lastDebrief = null;
 
 function esc(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
@@ -300,7 +300,7 @@ function initUI() {
 }
 
 function showScreen(n) { ["screen-menu","screen-loading","screen-game"].forEach(id => { document.getElementById(id).style.display = "none"; }); const el = document.getElementById(`screen-${n}`); el.style.display = (n === "menu" || n === "loading") ? "flex" : "block"; }
-function resetGame() { state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScores:{}, conversationHistory:[], scenarioCount:state.scenarioCount, loading:false, scenarioTitle:"", scenarioSetting:"", hiddenIssue:"", userResponses:[] }; document.getElementById("game-body").innerHTML = ""; document.getElementById("input-dock").style.display = "block"; showScreen("menu"); }
+function resetGame() { state = { phase:"menu", currentStep:"RECOGNISE", ragStatus:"GREEN", stepScores:{}, conversationHistory:[], scenarioCount:state.scenarioCount, loading:false, scenarioTitle:"", scenarioSetting:"", hiddenIssue:"", userResponses:[], journey:[] }; document.getElementById("game-body").innerHTML = ""; document.getElementById("input-dock").style.display = "block"; showScreen("menu"); }
 
 function renderStepJourney() {
     const el = document.getElementById("step-journey");
@@ -365,30 +365,170 @@ function updateStep() { document.getElementById("header-step").textContent = sta
 function downloadPDF(d) {
     const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "mm", format: "a4" }); const W = 210, M = 20, CW = W - 2*M; let y = 20;
     const colors = { r:[36,67,123], e:[35,94,75], s:[164,104,78], p:[205,55,43], o:[235,175,36], n:[40,123,201], d:[134,37,235] };
+    const stepColorMap = { RECOGNISE:colors.r, ENGAGE:colors.e, SUPPORT:colors.s, PAUSE:colors.p, OFFER:colors.o, NOTIFY:colors.n, DOCUMENT:colors.d };
+    const footer = () => { doc.setFontSize(7); doc.setTextColor(160,160,160); doc.text("RESPOND Safeguarding Simulator \u2014 respondsafeguarding.org \u2014 Training purposes only", W/2, 290, {align:"center"}); };
+    const checkPage = (need) => { if (y + need > 275) { footer(); doc.addPage(); y = 20; } };
+    const drawText = (txt, x, maxW, size, style, clr, lh) => { doc.setFont("helvetica", style||"normal"); doc.setFontSize(size||10); doc.setTextColor(clr?clr[0]:60, clr?clr[1]:60, clr?clr[2]:60); const lines = doc.splitTextToSize(txt, maxW||CW); checkPage(lines.length * (lh||4.5) + 2); doc.text(lines, x||M, y); y += lines.length * (lh||4.5); return lines.length; };
+
+    /* === PAGE 1: COVER === */
     const dotR = 3, dotGap = 10, dotsW = 7*dotR*2 + 6*dotGap; let dx = (W - dotsW) / 2;
-    STEPS.forEach(s => { const c = colors[s.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(dx+dotR, y+dotR, dotR, "F"); dx += dotR*2 + dotGap; }); y += 14;
-    doc.setFont("helvetica","bold"); doc.setFontSize(22); doc.setTextColor(30,30,30); doc.text("RESPOND \u2014 Case Debrief", W/2, y, {align:"center"}); y += 8;
-    doc.setFontSize(10); doc.setTextColor(120,120,120); doc.text(`${state.scenarioTitle}  |  ${new Date().toLocaleDateString("en-GB")}`, W/2, y, {align:"center"}); y += 12;
-    doc.setFillColor(240,240,245); doc.roundedRect(M, y, CW, 20, 3, 3, "F");
-    doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    STEPS.forEach(s => { const c = colors[s.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(dx+dotR, y+dotR, dotR, "F"); dx += dotR*2 + dotGap; }); y += 16;
+    doc.setFont("helvetica","bold"); doc.setFontSize(24); doc.setTextColor(30,30,30); doc.text("RESPOND", W/2, y, {align:"center"}); y += 7;
+    doc.setFontSize(11); doc.setTextColor(120,120,120); doc.text("Safeguarding Simulator \u2014 Case Record", W/2, y, {align:"center"}); y += 14;
+    doc.setDrawColor(200,200,200); doc.line(M, y, W-M, y); y += 10;
+    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(30,30,30); doc.text(state.scenarioTitle || "Case Record", W/2, y, {align:"center"}); y += 8;
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(120,120,120); doc.text(new Date().toLocaleDateString("en-GB", {weekday:"long",year:"numeric",month:"long",day:"numeric"}), W/2, y, {align:"center"}); y += 14;
+
+    /* Score cluster */
+    doc.setFillColor(245,245,250); doc.roundedRect(M, y, CW, 24, 4, 4, "F");
     const sc = d.overall_score >= 75 ? [5,150,105] : d.overall_score >= 50 ? [217,119,6] : [220,38,38];
-    doc.setTextColor(sc[0],sc[1],sc[2]); doc.text(`${d.overall_score} / 100`, M+15, y+13);
-    doc.setFontSize(11); const gc = {"Outstanding":[5,150,105],"Good":[37,99,235],"Requires Improvement":[217,119,6],"Inadequate":[220,38,38]};
-    const gclr = gc[d.grade]||[60,60,60]; doc.setTextColor(gclr[0],gclr[1],gclr[2]); doc.text(d.grade, M+55, y+13);
-    doc.setTextColor(100,100,100); doc.text(`RAG: ${d.rag_final}`, M+CW-15, y+13, {align:"right"}); y += 28;
-    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(30,30,30); doc.text("Step Scores", M, y); y += 6;
-    STEPS.forEach(step => { const s = d.step_scores?.[step.key]; if(!s) return; if (y > 265) { doc.addPage(); y = 20; } const c = colors[step.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(M+3, y+3, 2.5, "F"); doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,30,30); doc.text(step.label, M+9, y+4.5); const sclr = s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38]; doc.setTextColor(sclr[0],sclr[1],sclr[2]); doc.text(`${s.score}/10`, M+45, y+4.5); doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(80,80,80); const lines = doc.splitTextToSize(s.feedback, CW-55); doc.text(lines, M+55, y+4.5); y += Math.max(8, lines.length*4 + 4); }); y += 6;
-    if (y > 240) { doc.addPage(); y = 20; } doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(5,150,105); doc.text("Strengths", M, y); y += 5; doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60); (d.strengths||[]).forEach(s => { const l=doc.splitTextToSize(`\u2022 ${s}`,CW); doc.text(l,M,y); y+=l.length*4+2; }); y += 4;
-    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(255,107,53); doc.text("Areas for Development", M, y); y += 5; doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60); (d.areas_for_development||[]).forEach(s => { const l=doc.splitTextToSize(`\u2022 ${s}`,CW); doc.text(l,M,y); y+=l.length*4+2; }); y += 4;
-    if (y > 250) { doc.addPage(); y = 20; } doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(37,99,235); doc.text("Key Learning", M, y); y += 5; doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60); const kl = doc.splitTextToSize(d.key_learning, CW); doc.text(kl, M, y); y += kl.length*4 + 4;
-    if (d.statutory_references?.length) { if (y > 255) { doc.addPage(); y = 20; } doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text("STATUTORY REFERENCES", M, y); y += 4; doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(140,140,140); d.statutory_references.forEach(r => { const l=doc.splitTextToSize(r,CW); doc.text(l,M,y); y+=l.length*3.5+2; }); }
-    doc.setFontSize(7); doc.setTextColor(160,160,160); doc.text("RESPOND Safeguarding Simulator \u2014 respondsafeguarding.org \u2014 Training purposes only", W/2, 290, {align:"center"});
-    const fname = `RESPOND_Debrief_${state.scenarioTitle.replace(/[^a-zA-Z0-9]/g,"_").substring(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`; doc.save(fname);
+    doc.setFont("helvetica","bold"); doc.setFontSize(20); doc.setTextColor(sc[0],sc[1],sc[2]); doc.text(`${d.overall_score} / 100`, M+15, y+15);
+    const gc = {"Outstanding":[5,150,105],"Good":[37,99,235],"Requires Improvement":[217,119,6],"Inadequate":[220,38,38]};
+    const gclr = gc[d.grade]||[60,60,60]; doc.setFontSize(12); doc.setTextColor(gclr[0],gclr[1],gclr[2]); doc.text(d.grade, M+60, y+15);
+    doc.setFontSize(10); doc.setTextColor(100,100,100); doc.text(`RAG: ${d.rag_final}`, M+CW-15, y+15, {align:"right"}); y += 32;
+
+    /* Step scores summary row */
+    const cellW = CW / 7;
+    STEPS.forEach((step, i) => {
+        const s = d.step_scores?.[step.key]; const cx = M + i*cellW + cellW/2;
+        const c = colors[step.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(cx, y+3, 2.5, "F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(80,80,80); doc.text(step.letter, cx, y+10, {align:"center"});
+        if (s) { const sclr = s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38]; doc.setFontSize(11); doc.setTextColor(sclr[0],sclr[1],sclr[2]); doc.text(`${s.score}`, cx, y+17, {align:"center"}); }
+    }); y += 24;
+    doc.setDrawColor(200,200,200); doc.line(M, y, W-M, y); y += 6;
+    footer(); doc.addPage(); y = 20;
+
+    /* === PAGE 2+: FULL CASE WALKTHROUGH === */
+    doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(30,30,30); doc.text("CASE WALKTHROUGH", M, y); y += 3;
+    doc.setDrawColor(36,67,123); doc.setLineWidth(0.8); doc.line(M, y, M+40, y); doc.setLineWidth(0.2); y += 10;
+
+    let currentStepLabel = "";
+    state.journey.forEach((ev) => {
+        const stepObj = STEPS.find(s => s.key === ev.step) || STEPS[0];
+        const clr = stepColorMap[ev.step] || [80,80,80];
+
+        if (ev.type === "scenario") {
+            /* Initial scenario */
+            checkPage(50);
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(clr[0],clr[1],clr[2]);
+            doc.text(`\u25cf  ${stepObj.label.toUpperCase()} \u2014 Initial Scenario`, M, y); y += 7;
+            if (ev.title) { doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(30,30,30); drawText(ev.title, M+6, CW-6, 12, "bold", [30,30,30]); y += 2; }
+            if (ev.setting) { doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text(ev.setting, M+6, y); y += 5; }
+            drawText(ev.text, M+6, CW-6, 10, "normal", [50,50,50], 4.5); y += 4;
+            if (ev.prompt) {
+                checkPage(12);
+                doc.setFillColor(clr[0],clr[1],clr[2],); doc.setDrawColor(clr[0],clr[1],clr[2]);
+                doc.roundedRect(M+4, y, CW-4, 0.6, 0.3, 0.3, "F"); y += 3;
+                doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(clr[0],clr[1],clr[2]); doc.text("PROMPT", M+6, y); y += 4;
+                drawText(ev.prompt, M+6, CW-6, 10, "normal", [40,40,40], 4.5); y += 6;
+            }
+            doc.setDrawColor(220,220,220); doc.line(M, y, W-M, y); y += 8;
+            currentStepLabel = ev.step;
+        }
+
+        else if (ev.type === "response") {
+            checkPage(18);
+            doc.setFillColor(240,243,248); doc.roundedRect(M+4, y-2, CW-4, 0, 3, 3, "F");
+            doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(100,100,100); doc.text("YOUR RESPONSE", M+6, y); y += 5;
+            const respLines = doc.splitTextToSize(ev.text, CW-12);
+            const rh = respLines.length * 4.5 + 6;
+            checkPage(rh);
+            doc.setFillColor(240,243,248); doc.roundedRect(M+4, y-4, CW-4, rh, 3, 3, "F");
+            doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(40,40,40); doc.text(respLines, M+8, y); y += rh + 2;
+        }
+
+        else if (ev.type === "assessment") {
+            checkPage(22);
+            const sclr = ev.score>=7?[5,150,105]:ev.score>=4?[217,119,6]:[220,38,38];
+            const verdict = ev.score>=7?"STRONG RESPONSE":ev.score>=4?"ADEQUATE":"NEEDS IMPROVEMENT";
+            doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(sclr[0],sclr[1],sclr[2]); doc.text(`${ev.score}/10`, M+6, y);
+            doc.setFontSize(9); doc.text(verdict, M+20, y); y += 5;
+            drawText(ev.text, M+6, CW-6, 9, "normal", [80,80,80], 4); y += 2;
+            if (ev.critical && ev.criticalDetail) {
+                checkPage(14);
+                doc.setFillColor(255,240,240); doc.roundedRect(M+4, y-2, CW-4, 0, 3, 3, "F");
+                const cmLines = doc.splitTextToSize(ev.criticalDetail, CW-16);
+                const cmH = cmLines.length * 4 + 8;
+                doc.setFillColor(255,240,240); doc.roundedRect(M+4, y-2, CW-4, cmH, 3, 3, "F");
+                doc.setDrawColor(220,60,60); doc.roundedRect(M+4, y-2, CW-4, cmH, 3, 3, "S");
+                doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(220,38,38); doc.text("\u26a0 CRITICAL MISS", M+8, y+2); y += 6;
+                doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(180,30,30); doc.text(cmLines, M+8, y); y += cmLines.length * 4 + 4;
+            }
+            doc.setDrawColor(220,220,220); doc.line(M, y, W-M, y); y += 8;
+        }
+
+        else if (ev.type === "development") {
+            if (ev.step !== currentStepLabel) {
+                checkPage(12);
+                const devClr = stepColorMap[ev.step] || [80,80,80];
+                const devObj = STEPS.find(s => s.key === ev.step) || { label: ev.step };
+                doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(devClr[0],devClr[1],devClr[2]);
+                doc.text(`\u25cf  ${devObj.label.toUpperCase()}`, M, y); y += 7;
+                currentStepLabel = ev.step;
+            }
+            if (ev.text) { drawText(ev.text, M+6, CW-6, 10, "normal", [50,50,50], 4.5); y += 4; }
+            if (ev.prompt) {
+                checkPage(12);
+                const pClr = stepColorMap[ev.step] || [80,80,80];
+                doc.setFillColor(pClr[0],pClr[1],pClr[2]); doc.roundedRect(M+4, y, CW-4, 0.6, 0.3, 0.3, "F"); y += 3;
+                doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(pClr[0],pClr[1],pClr[2]); doc.text("PROMPT", M+6, y); y += 4;
+                drawText(ev.prompt, M+6, CW-6, 10, "normal", [40,40,40], 4.5); y += 6;
+            }
+        }
+    });
+
+    /* === FINAL SECTION: DEBRIEF ANALYSIS === */
+    footer(); doc.addPage(); y = 20;
+    dx = (W - dotsW) / 2;
+    STEPS.forEach(s => { const c = colors[s.letter.toLowerCase()]; doc.setFillColor(c[0],c[1],c[2]); doc.circle(dx+dotR, y+dotR, dotR, "F"); dx += dotR*2 + dotGap; }); y += 14;
+    doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(30,30,30); doc.text("DEBRIEF ANALYSIS", W/2, y, {align:"center"}); y += 12;
+
+    /* Step-by-step scores with feedback */
+    STEPS.forEach(step => {
+        const s = d.step_scores?.[step.key]; if(!s) return;
+        checkPage(16);
+        const c = colors[step.letter.toLowerCase()];
+        doc.setFillColor(c[0],c[1],c[2]); doc.circle(M+3, y+3, 2.5, "F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(30,30,30); doc.text(step.label, M+9, y+4.5);
+        const sclr = s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38];
+        doc.setTextColor(sclr[0],sclr[1],sclr[2]); doc.text(`${s.score}/10`, M+45, y+4.5);
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(80,80,80);
+        const lines = doc.splitTextToSize(s.feedback, CW-55); doc.text(lines, M+55, y+4.5);
+        y += Math.max(10, lines.length*4 + 6);
+    }); y += 6;
+
+    /* Strengths */
+    checkPage(20);
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(5,150,105); doc.text("\u2713 Strengths", M, y); y += 6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    (d.strengths||[]).forEach(s => { const l=doc.splitTextToSize(`\u2022 ${s}`,CW); checkPage(l.length*4+3); doc.text(l,M+4,y); y+=l.length*4+3; }); y += 4;
+
+    /* Areas for development */
+    checkPage(20);
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(255,107,53); doc.text("\u26a1 Areas for Development", M, y); y += 6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    (d.areas_for_development||[]).forEach(s => { const l=doc.splitTextToSize(`\u2022 ${s}`,CW); checkPage(l.length*4+3); doc.text(l,M+4,y); y+=l.length*4+3; }); y += 4;
+
+    /* Key learning */
+    checkPage(16);
+    doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(37,99,235); doc.text("Key Learning", M, y); y += 6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(60,60,60);
+    const kl = doc.splitTextToSize(d.key_learning, CW); checkPage(kl.length*4+4); doc.text(kl, M, y); y += kl.length*4 + 6;
+
+    /* Statutory references */
+    if (d.statutory_references?.length) {
+        checkPage(12);
+        doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text("STATUTORY REFERENCES", M, y); y += 5;
+        doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(140,140,140);
+        d.statutory_references.forEach(r => { const l=doc.splitTextToSize(r,CW); checkPage(l.length*3.5+3); doc.text(l,M,y); y+=l.length*3.5+3; });
+    }
+    footer();
+    const fname = `RESPOND_Case_Record_${state.scenarioTitle.replace(/[^a-zA-Z0-9]/g,"_").substring(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`; doc.save(fname);
 }
 
 async function logToSheet(debriefData) {
     if (!GOOGLE_SHEET_WEBHOOK) return;
-    try { const d = debriefData; const payload = { timestamp: new Date().toISOString(), scenario_title: state.scenarioTitle, scenario_setting: state.scenarioSetting, hidden_issue: state.hiddenIssue, overall_score: d.overall_score, grade: d.grade, rag_final: d.rag_final, score_recognise: d.step_scores?.RECOGNISE?.score || "", score_engage: d.step_scores?.ENGAGE?.score || "", score_support: d.step_scores?.SUPPORT?.score || "", score_pause: d.step_scores?.PAUSE?.score || "", score_offer: d.step_scores?.OFFER?.score || "", score_notify: d.step_scores?.NOTIFY?.score || "", score_document: d.step_scores?.DOCUMENT?.score || "", strengths: (d.strengths||[]).join(" | "), areas_for_development: (d.areas_for_development||[]).join(" | "), key_learning: d.key_learning || "", statutory_references: (d.statutory_references||[]).join(" | "), user_responses: state.userResponses.map(r => `[${r.step}] ${r.response}`).join(" || ") };
+    try { const d = debriefData; const payload = { timestamp: new Date().toISOString(), scenario_title: state.scenarioTitle, scenario_setting: state.scenarioSetting, hidden_issue: state.hiddenIssue, overall_score: d.overall_score, grade: d.grade, rag_final: d.rag_final, score_recognise: d.step_scores?.RECOGNISE?.score || "", score_engage: d.step_scores?.ENGAGE?.score || "", score_support: d.step_scores?.SUPPORT?.score || "", score_pause: d.step_scores?.PAUSE?.score || "", score_offer: d.step_scores?.OFFER?.score || "", score_notify: d.step_scores?.NOTIFY?.score || "", score_document: d.step_scores?.DOCUMENT?.score || "", strengths: (d.strengths||[]).join(" | "), areas_for_development: (d.areas_for_development||[]).join(" | "), key_learning: d.key_learning || "", statutory_references: (d.statutory_references||[]).join(" | "), user_responses: state.userResponses.map(r => `[${r.step}] ${r.response}`).join(" || "), scenario_text: state.journey.find(j=>j.type==="scenario")?.text || "", critical_misses: state.journey.filter(j=>j.type==="assessment"&&j.critical).map(j=>`[${j.step}] ${j.criticalDetail}`).join(" || ") };
     navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK, new Blob([JSON.stringify(payload)], { type: "text/plain" }));
     } catch (e) { console.warn("Sheet log failed:", e); }
 }
@@ -401,7 +541,7 @@ function renderDebrief(data) {
     h += `<div class="db-steps">`; STEPS.forEach((step, i) => { const s = d.step_scores?.[step.key]; if (!s) return; const c = s.score >= 7 ? "#34d399" : s.score >= 4 ? "#fbbf24" : "#f87171"; h += `<div class="db-step-cell" style="animation:fadeUp 0.4s ${0.1+i*0.06}s both"><span class="dsc-dot" style="background:${step.color}"></span><span class="dsc-letter">${step.label}</span><span class="dsc-score" style="color:${c}">${s.score}<span>/10</span></span><span class="dsc-fb">${esc(s.feedback)}</span></div>`; }); h += `</div>`;
     h += `<div class="db-body"><div class="db-section strengths"><h4 class="db-section-title">\u2713 Strengths</h4>${(d.strengths||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div><div class="db-section areas"><h4 class="db-section-title">\u26a1 Areas for Development</h4>${(d.areas_for_development||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div><div class="db-section learning"><h4 class="db-section-title">\ud83d\udcda Key Learning</h4><p>${esc(d.key_learning)}</p></div>`;
     if (d.statutory_references?.length) h += `<div class="db-section refs"><h4 class="db-section-title">Statutory References</h4>${d.statutory_references.map(r=>`<p>${esc(r)}</p>`).join("")}</div>`;
-    h += `</div><div class="db-actions"><button class="btn-action secondary" onclick="downloadPDF(lastDebrief)">\ud83d\udcc4 Download PDF</button><button class="btn-action primary" onclick="startScenario()">Next Scenario \u2192</button><button class="btn-action ghost" onclick="resetGame()">Return to Menu</button></div></div>`;
+    h += `</div><div class="db-actions"><button class="btn-action secondary" onclick="downloadPDF(lastDebrief)">\ud83d\udcc4 Download Case Record</button><button class="btn-action primary" onclick="startScenario()">Next Scenario \u2192</button><button class="btn-action ghost" onclick="resetGame()">Return to Menu</button></div></div>`;
     addContent(h); lastDebrief = d; logToSheet(d);
 }
 
@@ -412,7 +552,8 @@ async function startScenario() {
     try { const type = SCENARIO_TYPES[state.scenarioCount % SCENARIO_TYPES.length]; state.scenarioCount++;
     const demo = randomDemographic();
     const data = await callAPI(`Generate a new safeguarding training scenario. Type: ${type}.\n\nYou MUST use these exact demographics (non-negotiable):\n- Student name: ${demo.name}\n- Gender: ${demo.gender}\n- Nationality/heritage: ${demo.origin}\n- Grade: ${demo.grade}\n- Setting: ${demo.setting}, ${demo.day}\n\nMake it realistic for an international boarding school. Do NOT reveal the safeguarding issue \u2014 staff must identify it. Respond with ONLY valid JSON.`, true);
-    state.ragStatus = data.severity || "GREEN"; state.scenarioTitle = data.title || ""; state.scenarioSetting = data.setting || ""; state.hiddenIssue = data.hidden_issue || ""; state.userResponses = [];
+    state.ragStatus = data.severity || "GREEN"; state.scenarioTitle = data.title || ""; state.scenarioSetting = data.setting || ""; state.hiddenIssue = data.hidden_issue || ""; state.userResponses = []; state.journey = [];
+    state.journey.push({ type:"scenario", step:"RECOGNISE", title:data.title, setting:data.setting, text:data.initial_observation, prompt:data.prompt_to_user });
     updateRAG(); updateStep(); renderStepJourney(); showScreen("game");
     renderScenario({ title: data.title, setting: data.setting, text: data.initial_observation, prompt: data.prompt_to_user });
     document.getElementById("user-input").focus();
@@ -423,13 +564,14 @@ async function submitResponse() {
     const input = document.getElementById("user-input").value.trim(); if (!input || state.loading) return;
     document.getElementById("user-input").value = ""; state.loading = true;
     document.getElementById("btn-submit").disabled = true; document.getElementById("user-input").disabled = true;
-    renderUser(input); state.userResponses.push({ step: state.currentStep, response: input }); showTyping();
+    renderUser(input); const submittedStep = state.currentStep; state.userResponses.push({ step: submittedStep, response: input }); state.journey.push({ type:"response", step:submittedStep, text:input }); showTyping();
     try { const data = await callAPI(`The user (staff member in training) responded to the current scenario at the ${state.currentStep} step:\n\n"${input}"\n\nAssess their response against the RESPOND framework ${state.currentStep} step requirements. Then develop the scenario further based on their choice. If they've now addressed enough RESPOND steps (at least through NOTIFY), you can move toward concluding the case. Respond with ONLY valid JSON.`, false);
     hideTyping(); if (data.rag_status) { state.ragStatus = data.rag_status; updateRAG(); }
     if (data.score && state.currentStep !== "COMPLETE") state.stepScores[state.currentStep] = data.score;
+    state.journey.push({ type:"assessment", step:submittedStep, score:data.score, text:data.assessment, critical:data.critical_miss||false, criticalDetail:data.critical_miss_detail||"" });
     if (data.current_step) { state.currentStep = data.current_step; updateStep(); } renderStepJourney();
     if (data.case_concluded && data.final_debrief) { renderAssess({ score: data.score, text: data.assessment, critical: data.critical_miss, criticalDetail: data.critical_miss_detail }); renderDebrief(data); }
-    else { renderAssess({ score: data.score, text: data.assessment, critical: data.critical_miss, criticalDetail: data.critical_miss_detail }); renderDev({ text: data.next_development, prompt: data.prompt_to_user }); }
+    else { renderAssess({ score: data.score, text: data.assessment, critical: data.critical_miss, criticalDetail: data.critical_miss_detail }); state.journey.push({ type:"development", step:state.currentStep, text:data.next_development, prompt:data.prompt_to_user }); renderDev({ text: data.next_development, prompt: data.prompt_to_user }); }
     } catch(err) { hideTyping(); addContent(`<div class="msg-error">Failed to process: ${esc(err.message)}. Please try again.</div>`); }
     state.loading = false; document.getElementById("btn-submit").disabled = false; document.getElementById("user-input").disabled = false; document.getElementById("user-input").focus();
 }
