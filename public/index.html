@@ -10,7 +10,8 @@
     <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{height:100%}
-body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;min-height:100vh;background:#f1f5f9;overflow:hidden}
+body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;min-height:100vh;background:#f1f5f9}
+body.in-game{overflow:hidden}
 :root{
   --bg:#f1f5f9;--bg-white:#fff;--border:#e2e8f0;--border-strong:#cbd5e1;
   --text:#334155;--text-dim:#94a3b8;--text-bright:#0f172a;--text-body:#475569;
@@ -25,9 +26,9 @@ body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;m
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 
 /* MENU */
-.screen-menu{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(135deg,#f8fafc,#e2e8f0);overflow-y:auto}
-.menu-wrap{max-width:540px;width:100%}
-.menu-hero{text-align:center;padding:48px 36px 40px;background:#fff;border-radius:20px;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
+.screen-menu{display:flex;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px;background:linear-gradient(135deg,#f8fafc,#e2e8f0);overflow-y:auto}
+.menu-wrap{max-width:540px;width:100%;margin:auto}
+.menu-hero{text-align:center;padding:48px 36px 40px;background:#fff;border-radius:20px;box-shadow:var(--shadow-lg);border:1px solid var(--border);width:100%}
 .menu-dots{display:flex;gap:10px;justify-content:center;margin-bottom:32px}
 .menu-dots .md{width:12px;height:12px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.15)}
 .menu-title{font-size:44px;font-weight:800;color:var(--text-bright);letter-spacing:-1.5px;margin:0 0 4px}
@@ -46,7 +47,7 @@ body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;m
 .menu-footer a{color:var(--text-dim);text-decoration:underline}
 
 /* LOADING */
-.screen-loading{display:none;align-items:center;justify-content:center;flex-direction:column;gap:24px;min-height:100vh;background:linear-gradient(135deg,#f8fafc,#e2e8f0)}
+.screen-loading{display:none;align-items:center;justify-content:center;flex-direction:column;gap:24px;min-height:100vh;min-height:100dvh;background:linear-gradient(135deg,#f8fafc,#e2e8f0)}
 .loading-bounce{display:flex;gap:8px}
 .loading-bounce .lb{width:12px;height:12px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.15)}
 .loading-bounce .lb:nth-child(1){animation:dotBounce 1.2s 0s infinite}
@@ -59,7 +60,7 @@ body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;m
 .loading-text{font-size:14px;color:var(--text-dim);font-weight:500}
 
 /* GAME SHELL */
-#screen-game{display:none;height:100vh;flex-direction:column;background:var(--bg)}
+#screen-game{display:none;height:100vh;height:100dvh;flex-direction:column;background:var(--bg)}
 .game-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:#fff;border-bottom:1px solid var(--border);z-index:50;box-shadow:var(--shadow-sm)}
 .gh-left{display:flex;align-items:center;gap:10px}
 .gh-logo{width:24px;height:24px;border-radius:4px;object-fit:contain}
@@ -191,8 +192,8 @@ body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;m
 .btn-action.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
 .msg-error{margin:14px 20px;padding:14px 18px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px}
 
-@media(max-width:840px){.game-panels{grid-template-columns:1fr;grid-template-rows:2fr 3fr}.panel-case{border-right:none;border-bottom:1px solid var(--border);padding:20px}}
-@media(max-width:640px){.menu-title{font-size:32px}.menu-hero{padding:32px 20px}.sj-label{display:none}.sj-step{min-width:32px;gap:0;flex-direction:column;padding:0 3px}.db-steps{grid-template-columns:repeat(4,1fr)}.db-big-score{font-size:40px}.game-panels{grid-template-rows:1fr 2fr}.panel-case{padding:16px}.case-text{font-size:13px}.work-prompt,.work-feedback{padding:20px}.wp-question{font-size:14px}}
+@media(max-width:840px){.game-panels{grid-template-columns:1fr;grid-template-rows:2fr 3fr}.panel-case{border-right:none;border-bottom:1px solid var(--border);padding:20px}.screen-menu{align-items:flex-start;padding:16px}}
+@media(max-width:640px){.menu-title{font-size:32px}.menu-hero{padding:32px 20px}.menu-desc{font-size:13px;margin-bottom:24px}.menu-step{padding:10px 16px;gap:12px}.ms-text{font-size:12px}.btn-begin{padding:14px 24px;font-size:14px}.sj-label{display:none}.sj-step{min-width:32px;gap:0;flex-direction:column;padding:0 3px}.db-steps{grid-template-columns:repeat(4,1fr)}.db-big-score{font-size:40px}.game-panels{grid-template-rows:1fr 2fr}.panel-case{padding:16px}.case-text{font-size:13px}.work-prompt,.work-feedback{padding:20px}.wp-question{font-size:14px}}
     </style>
 </head>
 <body>
@@ -268,6 +269,8 @@ function initUI(){
 function showScreen(n){
     ["screen-menu","screen-loading","screen-game"].forEach(id=>{document.getElementById(id).style.display="none";});
     document.getElementById(`screen-${n}`).style.display="flex";
+    document.body.classList.toggle("in-game",n==="game");
+    if(n!=="game")window.scrollTo(0,0);
 }
 
 function resetGame(){
