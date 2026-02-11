@@ -1,553 +1,427 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESPOND Safeguarding Simulator</title>
-    <link rel="icon" type="image/png" href="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true">
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>RESPOND Safeguarding Simulator</title>
+<link rel="icon" type="image/png" href="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{height:100%}
-body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;min-height:100vh;background:#f1f5f9}
-body.in-game{overflow:hidden}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{font-family:'Sora',-apple-system,sans-serif;line-height:1.6;color:#1e293b;background:#f1f5f9;min-height:100vh;min-height:100dvh}
+body.playing{overflow:hidden;height:100vh;height:100dvh}
 :root{
-  --bg:#f1f5f9;--bg-white:#fff;--border:#e2e8f0;--border-strong:#cbd5e1;
-  --text:#334155;--text-dim:#94a3b8;--text-bright:#0f172a;--text-body:#475569;
-  --active-step:#2563eb;--step-rgb:37,99,235;
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.05);--shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);--shadow-md:0 4px 6px -1px rgba(0,0,0,0.07),0 2px 4px -2px rgba(0,0,0,0.05);--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.08),0 4px 6px -4px rgba(0,0,0,0.04);
+--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;
+--text:#334155;--dim:#94a3b8;--bright:#0f172a;--body:#475569;
+--step:#2563eb;--step-rgb:37,99,235;
+--sh-sm:0 1px 2px rgba(0,0,0,.05);--sh:0 2px 8px rgba(0,0,0,.06);--sh-md:0 4px 12px rgba(0,0,0,.08);--sh-lg:0 8px 24px rgba(0,0,0,.1);
+--r:#2563eb;--e:#059669;--s:#d97706;--p:#dc2626;--o:#ca8a04;--n:#0284c7;--d:#7c3aed;
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-@keyframes critFlash{0%{background:#fef2f2}25%{background:#fee2e2}50%{background:#fef2f2}100%{background:#fef2f2}}
-@keyframes dotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
-@keyframes scoreReveal{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cardPop{0%{transform:scale(1)}50%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes scoreIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(var(--step-rgb),.3)}50%{box-shadow:0 0 0 8px rgba(var(--step-rgb),0)}}
+@keyframes dotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bgPulse{0%{opacity:.5}50%{opacity:1}100%{opacity:.5}}
 
-/* MENU */
-.screen-menu{display:flex;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:24px;background:linear-gradient(135deg,#f8fafc,#e2e8f0);overflow-y:auto}
-.menu-wrap{max-width:540px;width:100%;margin:auto}
-.menu-hero{text-align:center;padding:48px 36px 40px;background:#fff;border-radius:20px;box-shadow:var(--shadow-lg);border:1px solid var(--border);width:100%}
-.menu-dots{display:flex;gap:10px;justify-content:center;margin-bottom:32px}
-.menu-dots .md{width:12px;height:12px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.15)}
-.menu-title{font-size:44px;font-weight:800;color:var(--text-bright);letter-spacing:-1.5px;margin:0 0 4px}
-.menu-subtitle{font-size:14px;font-weight:500;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;margin:0 0 28px}
-.menu-desc{font-size:14px;color:var(--text-body);line-height:1.8;max-width:400px;margin:0 auto 32px}
-.menu-steps{display:flex;flex-direction:column;margin:0 0 32px;background:#f8fafc;border-radius:12px;border:1px solid var(--border);overflow:hidden}
-.menu-step{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border)}
-.menu-step:last-child{border-bottom:none}
-.ms-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.ms-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);min-width:18px}
-.ms-text{font-size:13px;color:var(--text)}
-.btn-begin{display:block;width:100%;padding:16px 32px;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;transition:all .3s;box-shadow:0 4px 14px rgba(37,99,235,.35)}
-.btn-begin:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.4)}
-#menu-error{display:none;padding:12px 16px;border-radius:10px;margin-top:16px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px}
-.menu-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--text-dim)}
-.menu-footer a{color:var(--text-dim);text-decoration:underline}
+/* ===== MENU ===== */
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.active{display:flex}
+.menu{align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,#f0f4ff,#e8f0fe,#f1f5f9);overflow-y:auto}
+.menu-box{max-width:480px;width:100%;text-align:center;background:#fff;padding:44px 32px 36px;border-radius:24px;box-shadow:var(--sh-lg);border:1px solid var(--border)}
+.m-dots{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+.m-dots span{width:10px;height:10px;border-radius:50%}
+.m-title{font-size:38px;font-weight:800;color:var(--bright);letter-spacing:-1.5px;margin:0 0 2px}
+.m-sub{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:4px;text-transform:uppercase;margin:0 0 20px}
+.m-desc{font-size:13px;color:var(--body);line-height:1.8;margin:0 auto 24px;max-width:380px}
+.m-steps{text-align:left;margin:0 0 24px;background:#f8fafc;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.m-step{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)}
+.m-step:last-child{border-bottom:none}
+.m-step-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.m-step-letter{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);min-width:14px}
+.m-step strong{font-weight:700}
+.m-play{display:block;width:100%;padding:16px;border:none;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-family:'Sora',sans-serif;font-size:16px;font-weight:700;letter-spacing:.5px;transition:all .3s;box-shadow:0 4px 16px rgba(37,99,235,.3)}
+.m-play:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,99,235,.35)}
+.m-play:active{transform:translateY(0)}
+.m-err{display:none;margin-top:14px;padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:12px}
+.m-foot{text-align:center;margin-top:16px;font-size:11px;color:var(--dim)}
+.m-foot a{color:var(--dim);text-decoration:underline}
 
-/* LOADING */
-.screen-loading{display:none;align-items:center;justify-content:center;flex-direction:column;gap:24px;min-height:100vh;min-height:100dvh;background:linear-gradient(135deg,#f8fafc,#e2e8f0)}
-.loading-bounce{display:flex;gap:8px}
-.loading-bounce .lb{width:12px;height:12px;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.15)}
-.loading-bounce .lb:nth-child(1){animation:dotBounce 1.2s 0s infinite}
-.loading-bounce .lb:nth-child(2){animation:dotBounce 1.2s .1s infinite}
-.loading-bounce .lb:nth-child(3){animation:dotBounce 1.2s .2s infinite}
-.loading-bounce .lb:nth-child(4){animation:dotBounce 1.2s .3s infinite}
-.loading-bounce .lb:nth-child(5){animation:dotBounce 1.2s .4s infinite}
-.loading-bounce .lb:nth-child(6){animation:dotBounce 1.2s .5s infinite}
-.loading-bounce .lb:nth-child(7){animation:dotBounce 1.2s .6s infinite}
-.loading-text{font-size:14px;color:var(--text-dim);font-weight:500}
+/* ===== LOADING ===== */
+.loading{align-items:center;justify-content:center;flex-direction:column;gap:20px;background:linear-gradient(160deg,#f0f4ff,#e8f0fe,#f1f5f9)}
+.l-dots{display:flex;gap:8px}
+.l-dots span{width:10px;height:10px;border-radius:50%}
+.l-dots span:nth-child(1){animation:dotBounce 1.2s 0s infinite}
+.l-dots span:nth-child(2){animation:dotBounce 1.2s .08s infinite}
+.l-dots span:nth-child(3){animation:dotBounce 1.2s .16s infinite}
+.l-dots span:nth-child(4){animation:dotBounce 1.2s .24s infinite}
+.l-dots span:nth-child(5){animation:dotBounce 1.2s .32s infinite}
+.l-dots span:nth-child(6){animation:dotBounce 1.2s .40s infinite}
+.l-dots span:nth-child(7){animation:dotBounce 1.2s .48s infinite}
+.l-text{font-size:13px;color:var(--dim);font-weight:500}
 
-/* GAME SHELL */
-#screen-game{display:none;height:100vh;height:100dvh;flex-direction:column;background:var(--bg)}
-.game-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:#fff;border-bottom:1px solid var(--border);z-index:50;box-shadow:var(--shadow-sm)}
-.gh-left{display:flex;align-items:center;gap:10px}
-.gh-logo{width:24px;height:24px;border-radius:4px;object-fit:contain}
-.gh-brand{font-weight:700;font-size:13px;color:var(--text-bright);text-decoration:none}
-.gh-divider{width:1px;height:20px;background:var(--border)}
-.rag-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.5px}
-.rag-pill .rp-dot{width:7px;height:7px;border-radius:50%}
-.rag-GREEN{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}.rag-GREEN .rp-dot{background:#059669}
-.rag-AMBER{background:#fffbeb;color:#b45309;border:1px solid #fde68a}.rag-AMBER .rp-dot{background:#d97706}
-.rag-RED{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}.rag-RED .rp-dot{background:#dc2626}
-.gh-right{display:flex;align-items:center;gap:12px}
-.gh-step-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)}
-.btn-exit{padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text-dim);font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif}
-.btn-exit:hover{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+/* ===== GAME ===== */
+.game{flex-direction:column;height:100vh;height:100dvh;background:var(--bg);overflow:hidden}
 
-/* STEP JOURNEY BAR */
-.step-journey{flex-shrink:0;display:flex;height:52px;border-bottom:1px solid var(--border);background:#fff}
-.sj-step{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 8px;font-size:11px;font-weight:600;color:var(--text-dim);transition:all .4s;border-bottom:3px solid transparent;opacity:.35}
-.sj-step.active{opacity:1;color:var(--text-bright);border-bottom-color:var(--active-step);background:linear-gradient(180deg,transparent 0%,rgba(var(--step-rgb),.04) 100%)}
-.sj-step.past{opacity:.7}
-.sj-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,.15)}
-.sj-step.active .sj-dot{width:12px;height:12px;box-shadow:0 0 0 3px rgba(var(--step-rgb),.2),0 1px 3px rgba(0,0,0,.15)}
-.sj-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sj-score{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;color:#fff;flex-shrink:0}
-.sj-sc-hi{background:#059669}.sj-sc-mid{background:#d97706}.sj-sc-lo{background:#dc2626}
+/* Top bar */
+.g-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 14px;height:44px;background:#fff;border-bottom:1px solid var(--border)}
+.g-bar-left{display:flex;align-items:center;gap:8px}
+.g-bar-logo{width:20px;height:20px;border-radius:3px}
+.g-bar-brand{font-weight:700;font-size:11px;color:var(--bright);text-decoration:none}
+.rag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:16px;font-size:9px;font-weight:700;letter-spacing:1.2px}
+.rag i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.rag-GREEN{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}.rag-GREEN i{background:#059669}
+.rag-AMBER{background:#fffbeb;color:#b45309;border:1px solid #fde68a}.rag-AMBER i{background:#d97706}
+.rag-RED{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}.rag-RED i{background:#dc2626}
+.g-bar-right{display:flex;align-items:center;gap:8px}
+.g-score-display{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--bright)}
+.g-btn-exit{padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;color:var(--dim);font-size:10px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif}
+.g-btn-exit:hover{border-color:#dc2626;color:#dc2626}
 
-/* TWO-PANEL LAYOUT */
-.game-panels{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0;overflow:hidden}
+/* Step progress */
+.g-progress{flex-shrink:0;display:flex;height:40px;background:#fff;border-bottom:1px solid var(--border);align-items:center;padding:0 8px}
+.g-prog-step{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;font-size:9px;font-weight:700;color:var(--dim);opacity:.3;transition:all .3s}
+.g-prog-step.active{opacity:1;color:var(--bright)}
+.g-prog-step.done{opacity:.6}
+.g-prog-dot{width:8px;height:8px;border-radius:50%;transition:all .3s}
+.g-prog-step.active .g-prog-dot{width:10px;height:10px;animation:pulseGlow 2s infinite}
+.g-prog-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-prog-score{font-family:'DM Mono',monospace;font-size:8px;padding:1px 5px;border-radius:8px;color:#fff}
 
-/* LEFT: CASE FILE */
-.panel-case{overflow-y:auto;padding:28px 24px 40px;background:#fff;border-right:1px solid var(--border);scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
-.panel-case::-webkit-scrollbar{width:6px}.panel-case::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.case-badge{display:inline-flex;align-items:center;gap:6px;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px;padding:4px 10px;background:#f8fafc;border-radius:4px;border:1px solid var(--border)}
-.case-badge-dot{width:8px;height:8px;border-radius:50%}
-.case-title{font-size:22px;font-weight:800;color:var(--text-bright);letter-spacing:-.5px;margin:0 0 6px;line-height:1.3}
-.case-setting{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);margin:0 0 20px;padding-bottom:16px;border-bottom:2px solid var(--border)}
-.case-entry{animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both}
-.case-text{font-size:14px;line-height:1.85;color:var(--text-body)}
-.case-divider{height:1px;background:var(--border);margin:20px 0}
-.case-step-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px;padding:5px 12px;border-radius:6px;border:1px solid}
-.case-step-dot{width:6px;height:6px;border-radius:50%}
-.case-response{margin:16px 0;padding:14px 18px;border-radius:10px;border-left:4px solid;background:#f8fafc;box-shadow:var(--shadow-sm)}
-.case-response-label{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase}
-.case-response-text{font-size:13px;line-height:1.7;color:var(--text-bright)}
-.case-assessment{margin:12px 0 0;padding:12px 16px;border-radius:10px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow-sm)}
-.case-assessment.good{background:#f0fdf4;border:1px solid #bbf7d0}
-.case-assessment.mid{background:#fffbeb;border:1px solid #fde68a}
-.case-assessment.low{background:#fef2f2;border:1px solid #fecaca}
-.ca-score{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;flex-shrink:0}
-.ca-score.good{color:#059669}.ca-score.mid{color:#b45309}.ca-score.low{color:#dc2626}
-.ca-text{font-size:12px;line-height:1.6;color:var(--text-body)}
-.case-critical{margin:8px 0 0;padding:12px 16px;border-radius:8px;background:#fef2f2;border:1px solid #fca5a5;box-shadow:var(--shadow-sm)}
-.case-critical-tag{font-size:9px;font-weight:800;letter-spacing:1px;color:#dc2626;margin-bottom:4px}
-.case-critical-text{font-size:12px;color:#991b1b;line-height:1.5}
+/* Main game area */
+.g-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px;gap:12px}
 
-/* RIGHT: WORKSPACE */
-.panel-work{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg);scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
-.panel-work::-webkit-scrollbar{width:6px}.panel-work::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.work-prompt{flex:1;display:flex;flex-direction:column;padding:28px;animation:slideIn .4s cubic-bezier(.16,1,.3,1) both}
-.wp-step-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.wp-dot{width:14px;height:14px;border-radius:50%;box-shadow:0 2px 6px rgba(var(--step-rgb),.3)}
-.wp-step-name{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.wp-step-sub{font-size:12px;color:var(--text-dim)}
-.wp-question{font-size:15px;font-weight:600;color:var(--text-bright);line-height:1.7;margin:16px 0 24px;padding:16px 20px;background:#fff;border-radius:12px;border:1px solid var(--border);border-left:4px solid var(--active-step);box-shadow:var(--shadow-sm)}
-.wp-input-area{flex:1;display:flex;flex-direction:column;min-height:0}
-.wp-textarea{flex:1;min-height:120px;max-height:300px;padding:16px;border-radius:12px;border:2px solid var(--border);background:#fff;color:var(--text-bright);font-size:14px;line-height:1.7;resize:none;font-family:'Sora',sans-serif;outline:none;transition:border-color .3s,box-shadow .3s}
-.wp-textarea:focus{border-color:var(--active-step);box-shadow:0 0 0 3px rgba(var(--step-rgb),.12)}
-.wp-textarea::placeholder{color:#94a3b8}
-.wp-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-.wp-hint{font-size:10px;color:var(--text-dim)}
-.wp-submit{padding:12px 32px;border-radius:10px;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;box-shadow:0 4px 12px rgba(var(--step-rgb),.3)}
-.wp-submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
-.wp-submit:disabled{opacity:.3;cursor:not-allowed;transform:none;filter:none;box-shadow:none}
+/* Scene card */
+.g-scene{background:#fff;border-radius:16px;padding:18px 20px;border:1px solid var(--border);box-shadow:var(--sh);animation:slideDown .5s cubic-bezier(.16,1,.3,1) both;flex-shrink:0;overflow-y:auto;max-height:40%}
+.g-scene-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.g-scene-dot{width:10px;height:10px;border-radius:50%}
+.g-scene-step{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.g-scene-title{font-size:16px;font-weight:800;color:var(--bright);margin-bottom:4px;line-height:1.3}
+.g-scene-setting{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:10px}
+.g-scene-text{font-size:13px;line-height:1.8;color:var(--body)}
+.g-scene-update{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;line-height:1.8;color:var(--body);animation:fadeUp .4s both}
+.g-scene-prompt{margin-top:12px;font-size:14px;font-weight:700;color:var(--bright);padding:10px 14px;background:rgba(var(--step-rgb),.05);border-radius:10px;border-left:3px solid var(--step)}
 
-.work-assessing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px}
-.wa-dots{display:flex;gap:8px}
-.wa-dots span{width:10px;height:10px;border-radius:50%;background:var(--active-step);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.wa-dots span:nth-child(2){animation-delay:.2s}
-.wa-dots span:nth-child(3){animation-delay:.4s}
-.wa-label{font-size:13px;color:var(--text-dim);font-weight:500}
+/* Action cards */
+.g-cards{display:flex;gap:10px;flex:1;align-items:stretch;min-height:0}
+.g-card{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 14px;border-radius:16px;border:2px solid var(--border);background:#fff;cursor:pointer;text-align:center;transition:all .25s cubic-bezier(.16,1,.3,1);box-shadow:var(--sh);position:relative;overflow:hidden;min-height:100px}
+.g-card:nth-child(1){animation:cardIn .4s .05s cubic-bezier(.16,1,.3,1) both}
+.g-card:nth-child(2){animation:cardIn .4s .12s cubic-bezier(.16,1,.3,1) both}
+.g-card:nth-child(3){animation:cardIn .4s .19s cubic-bezier(.16,1,.3,1) both}
+.g-card:hover{border-color:var(--step);transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.g-card:active{transform:translateY(-1px) scale(.98)}
+.g-card.disabled{pointer-events:none;opacity:.35}
+.g-card-num{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--step);background:rgba(var(--step-rgb),.08);margin-bottom:10px;transition:all .2s}
+.g-card:hover .g-card-num{background:var(--step);color:#fff}
+.g-card-text{font-size:13px;font-weight:600;line-height:1.5;color:var(--bright)}
 
-.work-feedback{flex:1;display:flex;flex-direction:column;padding:28px;animation:slideIn .5s cubic-bezier(.16,1,.3,1) both}
-.wf-your-label{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}
-.wf-your-text{font-size:13px;line-height:1.7;color:var(--text-body);padding:14px 18px;border-radius:12px;background:#fff;border:1px solid var(--border);margin-bottom:24px;box-shadow:var(--shadow-sm)}
-.wf-score-row{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-.wf-score-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:#fff;animation:scoreReveal .4s .1s cubic-bezier(.34,1.56,.64,1) both;flex-shrink:0;box-shadow:var(--shadow-md)}
-.wf-verdict{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
-.wf-step-tag{font-size:11px;color:var(--text-dim)}
-.wf-assessment{font-size:14px;line-height:1.8;color:var(--text-body);margin-bottom:20px;padding:16px 20px;background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
-.wf-critical{padding:16px 20px;border-radius:12px;background:#fef2f2;border:1px solid #fca5a5;margin-bottom:20px;animation:critFlash 1.5s ease;box-shadow:var(--shadow-sm)}
-.wf-critical-tag{display:inline-block;background:#dc2626;color:#fff;padding:3px 10px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:1px;margin-bottom:8px}
-.wf-critical-text{font-size:13px;color:#991b1b;line-height:1.6}
-.wf-continue{margin-top:auto;padding:14px 32px;border-radius:10px;border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;align-self:flex-end;box-shadow:0 4px 12px rgba(var(--step-rgb),.3)}
-.wf-continue:hover{filter:brightness(1.1);transform:translateY(-1px)}
+/* Feedback overlay */
+.g-feedback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:10;pointer-events:none}
+.g-fb-score{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:24px;font-weight:800;color:#fff;animation:scoreIn .4s cubic-bezier(.34,1.56,.64,1) both;margin-bottom:10px;box-shadow:var(--sh-md)}
+.g-fb-verdict{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.g-fb-text{font-size:12px;color:var(--body);line-height:1.6;max-width:90%;text-align:center}
+.g-fb-crit{margin-top:8px;padding:8px 12px;border-radius:8px;background:#fef2f2;border:1px solid #fca5a5;font-size:11px;color:#dc2626;font-weight:600;animation:shakeX .5s both}
+.g-fb-next{margin-top:14px;padding:10px 28px;border-radius:10px;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;pointer-events:auto;transition:all .2s;box-shadow:0 3px 10px rgba(var(--step-rgb),.3)}
+.g-fb-next:hover{transform:translateY(-2px)}
 
-/* DEBRIEF */
-.game-panels.debrief-mode{grid-template-columns:1fr}
-.panel-case.debrief-hidden{display:none}
-.debrief-wrap{padding:40px 32px 60px;max-width:860px;margin:0 auto;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) both}
-.db-header{text-align:center;padding:32px 32px 36px;background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadow-md);margin-bottom:24px}
-.db-dots{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
-.db-dots .dbd{width:10px;height:10px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.db-title-text{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
-.db-case-title{font-size:22px;font-weight:800;color:var(--text-bright);margin-bottom:24px}
-.db-score-cluster{display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap}
-.db-big-score{font-size:56px;font-weight:800;line-height:1;animation:scoreReveal .6s cubic-bezier(.34,1.56,.64,1) both}
-.db-big-score span{font-size:20px;color:var(--text-dim);font-weight:400}
-.db-grade-badge{font-size:14px;font-weight:700;padding:8px 20px;border-radius:8px;border:2px solid}
-.db-steps{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--border);box-shadow:var(--shadow)}
-.db-step-cell{background:#fff;padding:18px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
-.dsc-dot{width:12px;height:12px;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.dsc-letter{font-size:10px;font-weight:700;color:var(--text-dim)}
-.dsc-score{font-size:24px;font-weight:800;line-height:1}
-.dsc-score span{font-size:10px;color:var(--text-dim);font-weight:400}
-.dsc-fb{font-size:10px;color:var(--text-dim);line-height:1.4;margin-top:4px}
-.db-body{margin-top:20px;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-.db-section{padding:22px 28px;border-bottom:1px solid var(--border);background:#fff}
-.db-section:last-child{border-bottom:none}
-.db-section-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
-.db-section.strengths{background:#f0fdf4}.db-section.strengths .db-section-title{color:#059669}.db-section.strengths p{color:#166534;font-size:13px;line-height:1.7;margin:5px 0}
-.db-section.areas{background:#fffbeb}.db-section.areas .db-section-title{color:#b45309}.db-section.areas p{color:#92400e;font-size:13px;line-height:1.7;margin:5px 0}
-.db-section.learning{background:#eff6ff}.db-section.learning .db-section-title{color:#2563eb}.db-section.learning p{color:#1e3a5f;font-size:14px;line-height:1.8;margin:0}
-.db-section.refs{background:#f8fafc}.db-section.refs .db-section-title{color:var(--text-dim)}.db-section.refs p{color:var(--text-dim);font-size:12px;line-height:1.5;margin:2px 0}
-.db-actions{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
-.btn-action{padding:12px 24px;border-radius:10px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;transition:all .2s}
-.btn-action.primary{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.3)}
-.btn-action.primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
-.btn-action.secondary{background:#fff;border:1px solid var(--border);color:var(--text);box-shadow:var(--shadow-sm)}
-.btn-action.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
-.msg-error{margin:14px 20px;padding:14px 18px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px}
+/* Assessing state */
+.g-assessing{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;flex:1}
+.g-assessing .wa-dots{display:flex;gap:6px}
+.g-assessing .wa-dots span{width:8px;height:8px;border-radius:50%;background:var(--step);animation:bgPulse 1.2s ease-in-out infinite}
+.g-assessing .wa-dots span:nth-child(2){animation-delay:.2s}
+.g-assessing .wa-dots span:nth-child(3){animation-delay:.4s}
+.g-assessing-text{font-size:12px;color:var(--dim)}
 
-@media(max-width:840px){.game-panels{grid-template-columns:1fr;grid-template-rows:2fr 3fr}.panel-case{border-right:none;border-bottom:1px solid var(--border);padding:20px}.screen-menu{align-items:flex-start;padding:16px}}
-@media(max-width:640px){.menu-title{font-size:32px}.menu-hero{padding:32px 20px}.menu-desc{font-size:13px;margin-bottom:24px}.menu-step{padding:10px 16px;gap:12px}.ms-text{font-size:12px}.btn-begin{padding:14px 24px;font-size:14px}.sj-label{display:none}.sj-step{min-width:32px;gap:0;flex-direction:column;padding:0 3px}.db-steps{grid-template-columns:repeat(4,1fr)}.db-big-score{font-size:40px}.game-panels{grid-template-rows:1fr 2fr}.panel-case{padding:16px}.case-text{font-size:13px}.work-prompt,.work-feedback{padding:20px}.wp-question{font-size:14px}}
-    </style>
+/* ===== DEBRIEF ===== */
+.debrief{flex-direction:column;overflow-y:auto;padding:20px;background:var(--bg)}
+.db{max-width:700px;margin:0 auto;width:100%;animation:fadeUp .6s both}
+.db-head{text-align:center;background:#fff;padding:28px 24px;border-radius:16px;border:1px solid var(--border);box-shadow:var(--sh-md);margin-bottom:16px}
+.db-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.db-dots span{width:8px;height:8px;border-radius:50%}
+.db-label{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+.db-title{font-size:18px;font-weight:800;color:var(--bright);margin-bottom:16px}
+.db-score-row{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+.db-big{font-size:48px;font-weight:800;line-height:1;animation:scoreIn .6s cubic-bezier(.34,1.56,.64,1) both}
+.db-big small{font-size:16px;color:var(--dim);font-weight:400}
+.db-grade{font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:2px solid}
+.db-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.db-cell{background:#fff;padding:14px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.db-cell-dot{width:8px;height:8px;border-radius:50%}
+.db-cell-letter{font-size:8px;font-weight:700;color:var(--dim)}
+.db-cell-score{font-size:20px;font-weight:800}
+.db-cell-score small{font-size:8px;color:var(--dim);font-weight:400}
+.db-cell-fb{font-size:8px;color:var(--dim);line-height:1.3}
+.db-sections{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.db-sec{padding:16px 20px;border-bottom:1px solid var(--border);background:#fff}
+.db-sec:last-child{border-bottom:none}
+.db-sec-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.db-sec.str{background:#f0fdf4}.db-sec.str .db-sec-title{color:#059669}.db-sec.str p{color:#166534}
+.db-sec.dev{background:#fffbeb}.db-sec.dev .db-sec-title{color:#b45309}.db-sec.dev p{color:#92400e}
+.db-sec.learn{background:#eff6ff}.db-sec.learn .db-sec-title{color:#2563eb}.db-sec.learn p{color:#1e3a5f}
+.db-sec.refs{background:#f8fafc}.db-sec.refs .db-sec-title{color:var(--dim)}.db-sec.refs p{color:var(--dim)}
+.db-sec p{font-size:12px;line-height:1.7;margin:3px 0}
+.db-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.db-btn{padding:11px 22px;border-radius:10px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;transition:all .2s}
+.db-btn.primary{background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.3)}
+.db-btn.secondary{background:#fff;border:1px solid var(--border);color:var(--text)}
+.db-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.db-btn:hover{transform:translateY(-2px)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+.menu{padding:12px}.menu-box{padding:28px 18px 28px}
+.m-title{font-size:30px}.m-desc{font-size:12px}.m-step{padding:9px 12px;font-size:11px}
+.g-cards{gap:6px}.g-card{padding:12px 10px;border-radius:12px;min-height:80px}
+.g-card-text{font-size:12px}.g-card-num{width:24px;height:24px;font-size:10px}
+.g-scene{padding:14px 16px;max-height:45%}.g-scene-title{font-size:14px}.g-scene-text{font-size:12px}
+.g-prog-label{display:none}.g-prog-step{min-width:28px}
+.g-main{padding:10px;gap:8px}
+.db-grid{grid-template-columns:repeat(4,1fr)}
+.db-big{font-size:36px}
+.db{padding:0}
+}
+</style>
 </head>
 <body>
-<div id="screen-menu" class="screen-menu">
-    <div class="menu-wrap"><div class="menu-hero">
-        <div class="menu-dots" id="menu-dots"></div>
-        <h1 class="menu-title">RESPOND</h1>
-        <p class="menu-subtitle">Safeguarding Simulator</p>
-        <p class="menu-desc">Navigate realistic safeguarding scenarios in real-time. Every decision is assessed against the RESPOND framework — building the recall-under-pressure skills that protect children.</p>
-        <div class="menu-steps" id="menu-steps"></div>
-        <div id="menu-error"></div>
-        <button class="btn-begin" onclick="startScenario()">Begin Scenario</button>
-    </div>
-    <p class="menu-footer"><a href="https://www.respondsafeguarding.org/" target="_blank">respondsafeguarding.org</a> · <a href="mailto:darren@respondsafeguarding.org">darren@respondsafeguarding.org</a></p></div>
+
+<!-- MENU -->
+<div id="scr-menu" class="screen menu active">
+<div class="menu-box">
+<div class="m-dots" id="m-dots"></div>
+<h1 class="m-title">RESPOND</h1>
+<p class="m-sub">Safeguarding Simulator</p>
+<p class="m-desc">Play through realistic safeguarding scenarios. Choose your action at each step. Build the skills that protect children.</p>
+<div class="m-steps" id="m-steps"></div>
+<div class="m-err" id="m-err"></div>
+<button class="m-play" onclick="startGame()">Play</button>
 </div>
-<div id="screen-loading" class="screen-loading"><div class="loading-bounce" id="loading-dots"></div><p class="loading-text">Generating your scenario...</p></div>
-<div id="screen-game">
-    <div class="game-header">
-        <div class="gh-left">
-            <img src="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true" alt="" class="gh-logo" onerror="this.style.display='none'">
-            <a href="https://www.respondsafeguarding.org/" target="_blank" class="gh-brand">RESPOND</a>
-            <div class="gh-divider"></div>
-            <span id="rag-badge" class="rag-pill rag-GREEN"><span class="rp-dot"></span>GREEN</span>
-        </div>
-        <div class="gh-right">
-            <span class="gh-step-label" id="header-step">STEP: RECOGNISE</span>
-            <button class="btn-exit" onclick="resetGame()">✕ Exit</button>
-        </div>
-    </div>
-    <div class="step-journey" id="step-journey"></div>
-    <div class="game-panels" id="game-panels">
-        <div class="panel-case" id="panel-case"></div>
-        <div class="panel-work" id="panel-work"></div>
-    </div>
+<p class="m-foot"><a href="https://www.respondsafeguarding.org/" target="_blank">respondsafeguarding.org</a></p>
 </div>
+
+<!-- LOADING -->
+<div id="scr-loading" class="screen loading">
+<div class="l-dots" id="l-dots"></div>
+<p class="l-text">Building your scenario...</p>
+</div>
+
+<!-- GAME -->
+<div id="scr-game" class="screen game">
+<div class="g-bar">
+<div class="g-bar-left">
+<img src="https://github.com/Daddymac1969/respond/blob/main/RESPOND%20Concept%20copyrighted%20(1).png?raw=true" alt="" class="g-bar-logo" onerror="this.style.display='none'">
+<a href="https://www.respondsafeguarding.org/" target="_blank" class="g-bar-brand">RESPOND</a>
+<span id="g-rag" class="rag rag-GREEN"><i></i>GREEN</span>
+</div>
+<div class="g-bar-right">
+<span class="g-score-display" id="g-running-score"></span>
+<button class="g-btn-exit" onclick="exitGame()">Exit</button>
+</div>
+</div>
+<div class="g-progress" id="g-progress"></div>
+<div class="g-main" id="g-main"></div>
+</div>
+
+<!-- DEBRIEF -->
+<div id="scr-debrief" class="screen debrief"></div>
+
 <script>
-const STEPS = [
-    {key:"RECOGNISE",letter:"R",color:"#2563eb",rgb:"37,99,235",label:"Recognise",sub:"Identify the concern"},
-    {key:"ENGAGE",letter:"E",color:"#059669",rgb:"5,150,105",label:"Engage",sub:"Communicate effectively"},
-    {key:"SUPPORT",letter:"S",color:"#d97706",rgb:"217,119,6",label:"Support",sub:"Maintain composure"},
-    {key:"PAUSE",letter:"P",color:"#dc2626",rgb:"220,38,38",label:"Pause",sub:"Consider your approach"},
-    {key:"OFFER",letter:"O",color:"#ca8a04",rgb:"202,138,4",label:"Offer",sub:"Model alternatives"},
-    {key:"NOTIFY",letter:"N",color:"#0284c7",rgb:"2,132,199",label:"Notify",sub:"Report the issue"},
-    {key:"DOCUMENT",letter:"D",color:"#7c3aed",rgb:"124,58,237",label:"Document",sub:"Record observations"}
-];
-const SCENARIO_TYPES=["A nuanced scenario involving possible emotional abuse with cultural complexity","A scenario involving concerning online behaviour and potential grooming","A scenario involving peer-on-peer abuse disguised as normal social dynamics","A scenario involving a student showing signs of neglect in a boarding context","A scenario involving possible exploitation with contextual safeguarding factors","A scenario involving self-harm indicators masked by academic pressure","A scenario involving discrimination and identity-based harm","A scenario involving a student displaying signs of radicalisation","A scenario involving concerning staff-student boundary issues","A scenario involving child-on-child sexual harassment normalised by peers"];
-const DN={male:["James","Oliver","Mohammed","Kwame","Ravi","Carlos","Liam","Tom\u00e1s","Yusuf","Dmitri","Ethan","Kofi","Arjun","Matteo","Hiroshi","Zane","Idris","Finn","Rafael","Jakub","Noah","Tariq","Seb","Diego","Amir","Callum","Marcus","Theo","Luca","Andr\u00e9","Patrick","Chen Wei","Hassan","Nikolai","Brandon","Oscar","Jamal","Hugo","Aarav","Kenji"],female:["Sophie","Fatima","Mei-Lin","Chioma","Isabella","Aoife","Priya","Elena","Yuki","Zara","Chloe","Amina","Leila","Freya","Valentina","Ngozi","Saoirse","Hana","Rosa","Ingrid","Grace","Nadia","Lena","Adaeze","Marta","Sienna","Daria","Kira","Esme","Anya","Thandi","Astrid","Maya","Lucia","Jasmine","Pilar","Emilia","Aisha","Kayla","Mina"],nonbinary:["Alex","Sam","Jordan","Rowan","Kai","Ash","Quinn","Avery","River","Sky"]};
-const DO=["British","American","German","French","Nigerian","Kenyan","South African","Ghanaian","Indian","Pakistani","Sri Lankan","Bangladeshi","Japanese","Korean","Chinese","Filipino","Brazilian","Mexican","Colombian","Argentine","Irish","Polish","Italian","Spanish","Swedish","Norwegian","Dutch","Turkish","Egyptian","Lebanese","Iranian","Australian","Canadian","Jamaican","Trinidadian","Thai","Vietnamese","Russian","Ukrainian","Czech","Greek","Portuguese","Moroccan","Ethiopian","Tanzanian","New Zealand","Saudi Arabian","Emirati","Singaporean","Malaysian"];
-const DG=["Pre-K","K","1","2","3","4","5","6","7","8","9","10","11","12"];
-const DS=["Classroom during morning lessons","Campus dining hall at lunch","Dorm corridor during evening check-in","Sports field after practice","Art studio during free period","Library at study hall","School reception area at drop-off","Music practice room after school","Campus courtyard between classes","Boarding house common room after dinner","Computer lab during a lesson","Science lab during a practical","Backstage during rehearsals","Campus caf\u00e9 on a Saturday morning","School minibus returning from a trip","Medical centre waiting area","Corridor outside the head's office","Sixth form study area mid-morning","Swimming pool changing rooms","Chapel or reflection space during assembly"];
-const DD=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-let usedNames=[];
-function rndDemo(){const g=Math.random();const gd=g<.42?"male":g<.84?"female":"nonbinary";const pool=DN[gd].filter(n=>!usedNames.includes(n));const p=pool.length?pool:DN[gd];const name=p[Math.floor(Math.random()*p.length)];usedNames.push(name);if(usedNames.length>20)usedNames=usedNames.slice(-10);return{name,gender:gd,origin:pk(DO),grade:pk(DG),setting:pk(DS),day:pk(DD)};}
-function pk(a){return a[Math.floor(Math.random()*a.length)];}
+const ST=[{k:"RECOGNISE",l:"R",c:"#2563eb",rgb:"37,99,235",n:"Recognise",s:"Identify the concern"},{k:"ENGAGE",l:"E",c:"#059669",rgb:"5,150,105",n:"Engage",s:"Communicate effectively"},{k:"SUPPORT",l:"S",c:"#d97706",rgb:"217,119,6",n:"Support",s:"Maintain composure"},{k:"PAUSE",l:"P",c:"#dc2626",rgb:"220,38,38",n:"Pause",s:"Consider your approach"},{k:"OFFER",l:"O",c:"#ca8a04",rgb:"202,138,4",n:"Offer",s:"Model alternatives"},{k:"NOTIFY",l:"N",c:"#0284c7",rgb:"2,132,199",n:"Notify",s:"Report the issue"},{k:"DOCUMENT",l:"D",c:"#7c3aed",rgb:"124,58,237",n:"Document",s:"Record observations"}];
+const TYPES=["emotional abuse with cultural complexity","concerning online behaviour and grooming","peer-on-peer abuse disguised as social dynamics","neglect signs in a boarding context","possible exploitation with contextual factors","self-harm masked by academic pressure","discrimination and identity-based harm","signs of radicalisation","staff-student boundary issues","child-on-child sexual harassment normalised by peers"];
+const DN={m:["James","Oliver","Mohammed","Kwame","Ravi","Carlos","Liam","Tom\u00e1s","Yusuf","Dmitri","Ethan","Kofi","Arjun","Matteo","Hiroshi","Zane","Idris","Finn","Rafael","Jakub","Noah","Tariq","Seb","Diego","Amir","Callum","Marcus","Theo","Luca","Andr\u00e9","Patrick","Chen Wei","Hassan","Nikolai","Brandon","Oscar","Jamal","Hugo","Aarav","Kenji"],f:["Sophie","Fatima","Mei-Lin","Chioma","Isabella","Aoife","Priya","Elena","Yuki","Zara","Chloe","Amina","Leila","Freya","Valentina","Ngozi","Saoirse","Hana","Rosa","Ingrid","Grace","Nadia","Lena","Adaeze","Marta","Sienna","Daria","Kira","Esme","Anya","Thandi","Astrid","Maya","Lucia","Jasmine","Pilar","Emilia","Aisha","Kayla","Mina"],nb:["Alex","Sam","Jordan","Rowan","Kai","Ash","Quinn","Avery","River","Sky"]};
+const DO=["British","American","German","French","Nigerian","Kenyan","South African","Ghanaian","Indian","Pakistani","Sri Lankan","Bangladeshi","Japanese","Korean","Chinese","Filipino","Brazilian","Mexican","Colombian","Argentine","Irish","Polish","Italian","Spanish","Swedish","Norwegian","Dutch","Turkish","Egyptian","Lebanese","Iranian","Australian","Canadian","Jamaican","Thai","Vietnamese","Russian","Ukrainian","Czech","Greek","Portuguese","Moroccan","Ethiopian","Tanzanian","New Zealand","Saudi Arabian","Emirati","Singaporean","Malaysian"];
+const DG=["Pre-K","K","1","2","3","4","5","6","7","8","9","10","11","12"];const DS=["Classroom during morning lessons","Campus dining hall at lunch","Dorm corridor at evening check-in","Sports field after practice","Art studio during free period","Library at study hall","School reception at drop-off","Music room after school","Campus courtyard between classes","Boarding house common room","Computer lab during a lesson","Science lab during a practical","Backstage during rehearsals","Campus caf\u00e9 Saturday morning","School minibus from a trip","Medical centre waiting area","Corridor outside head's office","Sixth form study area","Swimming pool changing rooms","Chapel during assembly"];const DD=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+let usedN=[];function pk(a){return a[Math.floor(Math.random()*a.length)]}function rnd(){const g=Math.random(),gd=g<.42?"m":g<.84?"f":"nb",gn=gd==="m"?"male":gd==="f"?"female":"nonbinary",pool=DN[gd].filter(n=>!usedN.includes(n)),p=pool.length?pool:DN[gd],name=p[Math.floor(Math.random()*p.length)];usedN.push(name);if(usedN.length>20)usedN=usedN.slice(-10);return{name,gender:gn,origin:pk(DO),grade:pk(DG),setting:pk(DS),day:pk(DD)};}
+const SYS="You are the RESPOND Safeguarding Training Simulator \u2014 a game engine for interactive safeguarding training in UK international boarding schools. The RESPOND Framework is from respondsafeguarding.org.\n\n## YOUR ROLE\nGuide staff through realistic safeguarding scenarios as a card-based game. Each round = one RESPOND step. Players choose action cards. You assess and develop the story.\n\n## THE RESPOND FRAMEWORK (7 Steps)\nR \u2013 RECOGNISE: Identify signs. Professional curiosity. Context factors (people/places/platforms/patterns).\nE \u2013 ENGAGE: Empathetic communication. TED questions (Tell/Explain/Describe, NOT \"why\"). \"I believe you. This is not your fault.\"\nS \u2013 SUPPORT: Immediate emotional/practical help. Validate without investigating. Safety check. Private space.\nP \u2013 PAUSE: Internal mental checkpoint (NOT going silent). Three Lenses: Risk, Rights, Resources. Don't investigate/promise secrecy/blame.\nO \u2013 OFFER: Explain next steps. DSL notification, possible agencies. Only offer what you can deliver.\nN \u2013 NOTIFY: DSL within 30 mins (immediately if crime). Report: time, details, disclosure, safety concerns.\nD \u2013 DOCUMENT: Record within 30 mins. Exact quotes. GOLD format (Ground, Observe, Language, Do).\n\n## RAG THRESHOLDS\nGREEN: Low-level, monitor. AMBER: Escalating, DSL assesses. RED: Immediate risk, DSL NOW.\n\n## GAME FORMAT \u2014 ACTION CARDS\n\n### Generating a scenario:\nCreate a realistic scenario. Respond with ONLY valid JSON:\n{\n  \"scenario_id\": \"unique_id\",\n  \"title\": \"Brief evocative title\",\n  \"setting\": \"Where/when \u2014 keep short\",\n  \"initial_observation\": \"What you see/hear \u2014 2-3 sentences MAX. Vivid. No labels.\",\n  \"hidden_issue\": \"FOR SCORING ONLY\",\n  \"severity\": \"GREEN|AMBER|RED\",\n  \"key_indicators\": [\"i1\",\"i2\",\"i3\"],\n  \"respond_step\": \"RECOGNISE\",\n  \"prompt_to_user\": \"Short question \u2014 max 12 words\",\n  \"cards\": [\n    {\"id\":\"1\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"best\"},\n    {\"id\":\"2\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"mid\"},\n    {\"id\":\"3\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"poor\"}\n  ]\n}\n\n### CARD DESIGN RULES \u2014 CRITICAL:\n- Exactly 3 cards per round\n- Each card text MUST be 12 words or fewer \u2014 these are ACTION PHRASES not paragraphs\n- One card = best response (score 8-10)\n- One card = adequate but flawed (score 5-7)\n- One card = poor/dangerous choice (score 1-4, may trigger critical_miss)\n- RANDOMISE card order \u2014 best card should NOT always be in the same slot\n- Cards should read like game actions: \"Approach calmly and ask open questions\" not \"You should consider approaching the student in a calm manner and asking them open-ended questions\"\n- All 3 must be plausible things a real staff member might do\n\n### After user selects a card:\n{\n  \"score\": 1-10,\n  \"assessment\": \"1 sentence feedback\",\n  \"respond_step_met\": true/false,\n  \"critical_miss\": false,\n  \"critical_miss_detail\": \"\",\n  \"next_development\": \"Story develops \u2014 1-2 sentences MAX\",\n  \"current_step\": \"NEXT_STEP\",\n  \"prompt_to_user\": \"Next question \u2014 max 12 words\",\n  \"cards\": [\n    {\"id\":\"1\",\"text\":\"max 12 words\",\"quality\":\"best\"},\n    {\"id\":\"2\",\"text\":\"max 12 words\",\"quality\":\"mid\"},\n    {\"id\":\"3\",\"text\":\"max 12 words\",\"quality\":\"poor\"}\n  ],\n  \"case_concluded\": false,\n  \"rag_status\": \"GREEN|AMBER|RED\"\n}\n\n### Concluding (after NOTIFY step minimum):\n{\n  \"score\": 1-10,\n  \"assessment\": \"Final feedback\",\n  \"respond_step_met\": true,\n  \"case_concluded\": true,\n  \"final_debrief\": {\n    \"overall_score\": 1-100,\n    \"grade\": \"Outstanding|Good|Requires Improvement|Inadequate\",\n    \"rag_final\": \"GREEN|AMBER|RED\",\n    \"step_scores\": {\n      \"RECOGNISE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"ENGAGE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"SUPPORT\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"PAUSE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"OFFER\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"NOTIFY\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"DOCUMENT\":{\"score\":1-10,\"feedback\":\"1 sentence\"}\n    },\n    \"strengths\": [\"s1\",\"s2\"],\n    \"areas_for_development\": [\"a1\",\"a2\"],\n    \"key_learning\": \"Key takeaway \u2014 1-2 sentences\",\n    \"statutory_references\": [\"ref1\",\"ref2\"]\n  },\n  \"cards\": [],\n  \"next_development\": \"\",\n  \"current_step\": \"COMPLETE\",\n  \"prompt_to_user\": \"\"\n}\n\n## RULES\n- Never reveal hidden issue until debrief\n- Card text MUST be 12 words or fewer \u2014 this is critical for the game UI\n- Keep ALL text concise \u2014 this is a fast-paced game\n- Use: Grade not Year, Faculty not teachers, Campus not school grounds, Dorm not house, Semester not term\n- ANTI-BIAS: Use exact demographics from prompt. Never link issues stereotypically to ethnicity.";
 
-const SYSTEM_PROMPT="You are the RESPOND Safeguarding Training Simulator \u2014 an AI engine for an interactive safeguarding training game used in UK schools (particularly international boarding schools). The RESPOND Framework is from respondsafeguarding.org.\n\n## YOUR ROLE\nYou guide staff through realistic safeguarding scenarios, assessing their decisions against the RESPOND framework (Recognise \u2192 Engage \u2192 Support \u2192 Pause \u2192 Offer \u2192 Notify \u2192 Document).\n\n## THE RESPOND FRAMEWORK\n\n**R \u2013 RECOGNISE (Identify the concern)**: Identify safeguarding signs and trust your observations. Professional curiosity; noticing changes; cultural awareness. Ask: what type of harm? Who is involved? What context factors (people/places/platforms/patterns)?\n\n**E \u2013 ENGAGE (Communicate effectively)**: Approach students with empathy and respect to build trust. Non-judgmental; age-appropriate; avoid leading questions. Use TED questions (Tell me, Explain, Describe \u2014 NOT \"why\"). Say: \"I believe you. This is not your fault. You're safe right now.\"\n\n**S \u2013 SUPPORT (Maintain composure)**: Consider what immediate emotional and practical assistance is tailored to needs. Validate without investigating; meet basic needs; cultural humility. Safety check: \"Are you safe now? Need medical attention?\" Provide private space, water, reassurance.\n\n**P \u2013 PAUSE (Consider your approach)**: Take time to think carefully before acting to ensure appropriate response. DON'T investigate, promise secrecy, blame victim, or promise outcomes. Check policy; avoid investigation impulse. Use Three Lenses: Risk \u2022 Rights \u2022 Resources. IMPORTANT: Pause is an internal mental checkpoint, not going silent. It means stopping to think before your next action \u2014 staff can still be present and reassuring while pausing internally.\n\n**O \u2013 OFFER (Model alternatives)**: Identify relevant services and resources promptly. Only offer what you can deliver; respect autonomy where safe. Explain next steps: DSL notification, possible police/CSC, parent contact. Support options: school counselor, trusted adult, external services.\n\n**N \u2013 NOTIFY (Report the issue)**: Inform designated safeguarding leads and senior managers as required. Within 30 minutes (immediately if crime in progress). Report: time, student details, what was disclosed, safety concerns, alleged perpetrator, evidence mentioned (NOT viewed). DSL coordinates with Police, CSC, SARC, parents.\n\n**D \u2013 DOCUMENT (Record observations)**: Keep accurate, detailed records of safeguarding actions and observations. Record within 30 minutes. Use exact words: \"Student said: [quote]\" \u2014 NO paraphrasing. Include: date, time, location, who present, student's words, demeanour, your actions. Use GOLD format (Ground, Observe, Language, Do).\n\n## RAG THRESHOLDS\n- **GREEN**: Low-level concern, monitor and record.\n- **AMBER**: Escalating concern or pattern. DSL must assess.\n- **RED**: Immediate risk of significant harm. DSL notified NOW.\n\n## GAME MECHANICS\n\n### When asked to generate a scenario:\nCreate a realistic, nuanced scenario for an international boarding school. The scenario should:\n- NOT reveal what the safeguarding issue is \u2014 staff must identify it\n- Include subtle indicators that require professional curiosity\n- Have cultural, contextual, or environmental complexity\n- Unfold in layers\n- Be challenging but realistic\n\nRespond with ONLY valid JSON (no markdown, no backticks):\n{\"scenario_id\":\"unique_id\",\"title\":\"Brief evocative title\",\"setting\":\"Where/when\",\"initial_observation\":\"What staff sees/hears \u2014 3-5 sentences MAX\",\"hidden_issue\":\"FOR SCORING ONLY\",\"severity\":\"GREEN|AMBER|RED\",\"key_indicators\":[\"i1\",\"i2\",\"i3\"],\"respond_step\":\"RECOGNISE\",\"prompt_to_user\":\"Question for user\"}\n\n### When assessing a user response:\nEvaluate against the current RESPOND step. Give credit for contextually appropriate responses. Respond with ONLY valid JSON:\n{\"score\":1-10,\"assessment\":\"Brief feedback\",\"respond_step_met\":true,\"critical_miss\":false,\"critical_miss_detail\":\"\",\"next_development\":\"2-3 sentences MAX\",\"current_step\":\"RECOGNISE|ENGAGE|SUPPORT|PAUSE|OFFER|NOTIFY|DOCUMENT\",\"prompt_to_user\":\"Next question\",\"case_concluded\":false,\"rag_status\":\"GREEN|AMBER|RED\"}\n\n### When concluding a case:\n{\"score\":1-10,\"assessment\":\"Final feedback\",\"respond_step_met\":true,\"case_concluded\":true,\"final_debrief\":{\"overall_score\":1-100,\"grade\":\"Outstanding|Good|Requires Improvement|Inadequate\",\"rag_final\":\"GREEN|AMBER|RED\",\"step_scores\":{\"RECOGNISE\":{\"score\":1-10,\"feedback\":\"...\"},\"ENGAGE\":{\"score\":1-10,\"feedback\":\"...\"},\"SUPPORT\":{\"score\":1-10,\"feedback\":\"...\"},\"PAUSE\":{\"score\":1-10,\"feedback\":\"...\"},\"OFFER\":{\"score\":1-10,\"feedback\":\"...\"},\"NOTIFY\":{\"score\":1-10,\"feedback\":\"...\"},\"DOCUMENT\":{\"score\":1-10,\"feedback\":\"...\"}},\"strengths\":[\"s1\",\"s2\"],\"areas_for_development\":[\"a1\",\"a2\"],\"key_learning\":\"Most important takeaway\",\"statutory_references\":[\"ref1\",\"ref2\"]},\"next_development\":\"\",\"current_step\":\"COMPLETE\",\"prompt_to_user\":\"\"}\n\n## RULES\n- Never reveal hidden issue until debrief\n- Culturally nuanced scenarios (international boarding school)\n- Include red herrings\n- Reward professional curiosity, penalise assumptions\n- Flag dangerous choices as critical_miss\n- Keep ALL text CONCISE \u2014 scenarios 3-5 sentences, developments 2-3 sentences, assessments 1-2 sentences\n\n## TERMINOLOGY\nUse: \"Grade\" not \"Year\", \"Faculty\" not \"teachers\", \"Campus\" not \"school grounds\", \"Dorm\" not \"house\", \"Semester\" not \"term\"\n\n## ANTI-BIAS \u2014 CRITICAL\nUse exact demographics from user prompt. NEVER stereotypically link issues to ethnicity/nationality. Perpetrators reflect realistic diversity.";
-
-let state={phase:"menu",currentStep:"RECOGNISE",ragStatus:"GREEN",stepScores:{},conversationHistory:[],scenarioCount:0,loading:false,scenarioTitle:"",scenarioSetting:"",hiddenIssue:"",userResponses:[],journey:[],pendingFeedback:null};
-const GOOGLE_SHEET_WEBHOOK="";
-let lastDebrief=null;
-
+const SHEET_URL="";
+let G={step:"RECOGNISE",rag:"GREEN",scores:{},history:[],count:0,loading:false,title:"",setting:"",hidden:"",responses:[],journey:[],cards:[],runScore:0,stepsDone:0};
+let lastDB=null;
 function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML;}
-function ragHtml(s){return `<span class="rag-pill rag-${s}"><span class="rp-dot"></span>${s}</span>`;}
-function getActiveStep(){return STEPS.find(s=>s.key===state.currentStep)||STEPS[0];}
-function updateStepTheming(){const s=getActiveStep();document.documentElement.style.setProperty('--active-step',s.color);document.documentElement.style.setProperty('--step-rgb',s.rgb);}
+function curStep(){return ST.find(s=>s.k===G.step)||ST[0];}
+function setCSS(){const s=curStep();document.documentElement.style.setProperty('--step',s.c);document.documentElement.style.setProperty('--step-rgb',s.rgb);}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.body.classList.toggle('playing',id==='scr-game');}
+function ragHTML(s){return`<span class="rag rag-${s}"><i></i>${s}</span>`;}
+function updateRAG(){document.getElementById('g-rag').outerHTML=ragHTML(G.rag);}
+function updateRunScore(){document.getElementById('g-running-score').textContent=G.runScore?`${G.runScore} pts`:'';}
 
 function initUI(){
-    document.getElementById("menu-dots").innerHTML=STEPS.map(s=>`<div class="md" style="background:${s.color}"></div>`).join("");
-    document.getElementById("menu-steps").innerHTML=STEPS.map((s,i)=>`<div class="menu-step" style="animation:fadeUp .5s ${.1+i*.06}s both"><span class="ms-dot" style="background:${s.color}"></span><span class="ms-num">${s.letter}</span><span class="ms-text"><strong>${s.label}</strong> \u2014 ${s.sub}</span></div>`).join("");
-    document.getElementById("loading-dots").innerHTML=STEPS.map(s=>`<div class="lb" style="background:${s.color}"></div>`).join("");
+document.getElementById('m-dots').innerHTML=ST.map(s=>`<span style="background:${s.c}"></span>`).join('');
+document.getElementById('m-steps').innerHTML=ST.map((s,i)=>`<div class="m-step" style="animation:fadeUp .4s ${.08+i*.04}s both"><span class="m-step-dot" style="background:${s.c}"></span><span class="m-step-letter">${s.l}</span><strong>${s.n}</strong> \u2014 ${s.s}</div>`).join('');
+document.getElementById('l-dots').innerHTML=ST.map(s=>`<span style="background:${s.c}"></span>`).join('');
 }
 
-function showScreen(n){
-    ["screen-menu","screen-loading","screen-game"].forEach(id=>{document.getElementById(id).style.display="none";});
-    document.getElementById(`screen-${n}`).style.display="flex";
-    document.body.classList.toggle("in-game",n==="game");
-    if(n!=="game")window.scrollTo(0,0);
+function renderProgress(){
+const el=document.getElementById('g-progress');const ci=ST.findIndex(s=>s.k===G.step);
+el.innerHTML=ST.map((s,i)=>{
+const active=s.k===G.step,done=i<ci||G.step==="COMPLETE",cls=active?'active':done?'done':'';
+const dc=(active||done)?s.c:'#d1d5db';
+const sc=G.scores[s.k];let sb='';
+if(sc!==undefined){const bg=sc>=7?'#059669':sc>=4?'#d97706':'#dc2626';sb=`<span class="g-prog-score" style="background:${bg}">${sc}</span>`;}
+return`<div class="g-prog-step ${cls}"><span class="g-prog-dot" style="background:${dc}"></span><span class="g-prog-label">${s.n}</span>${sb}</div>`;
+}).join('');
 }
-
-function resetGame(){
-    state={phase:"menu",currentStep:"RECOGNISE",ragStatus:"GREEN",stepScores:{},conversationHistory:[],scenarioCount:state.scenarioCount,loading:false,scenarioTitle:"",scenarioSetting:"",hiddenIssue:"",userResponses:[],journey:[],pendingFeedback:null};
-    document.getElementById("panel-case").innerHTML="";
-    document.getElementById("panel-case").className="panel-case";
-    document.getElementById("panel-work").innerHTML="";
-    document.getElementById("game-panels").className="game-panels";
-    showScreen("menu");
-}
-
-function renderStepJourney(){
-    const el=document.getElementById("step-journey");
-    const ci=STEPS.findIndex(s=>s.key===state.currentStep);
-    el.innerHTML=STEPS.map((step,i)=>{
-        const active=step.key===state.currentStep;
-        const past=i<ci||state.currentStep==="COMPLETE";
-        const cls=active?"active":past?"past":"";
-        const dc=(active||past)?step.color:"#d1d5db";
-        const score=state.stepScores[step.key];
-        let sb="";
-        if(score!==undefined){const sc=score>=7?"sj-sc-hi":score>=4?"sj-sc-mid":"sj-sc-lo";sb=`<span class="sj-score ${sc}">${score}</span>`;}
-        return `<div class="sj-step ${cls}"><span class="sj-dot" style="background:${dc};color:${dc}"></span><span class="sj-label">${step.label}</span>${sb}</div>`;
-    }).join("");
-}
-
-function updateRAG(){const el=document.getElementById("rag-badge");el.className=`rag-pill rag-${state.ragStatus}`;el.innerHTML=`<span class="rp-dot"></span>${state.ragStatus}`;}
-function updateStep(){document.getElementById("header-step").textContent=state.currentStep==="COMPLETE"?"COMPLETE":`STEP: ${state.currentStep}`;updateStepTheming();}
 
 async function callAPI(msg,isNew){
-    const msgs=isNew?[{role:"user",content:msg}]:[...state.conversationHistory,{role:"user",content:msg}];
-    const res=await fetch("/.netlify/functions/respond-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:SYSTEM_PROMPT,messages:msgs})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||`API error: ${res.status}`);}
-    const data=await res.json();const text=data.content?.map(c=>c.text||"").join("")||"";
-    let cleaned=text.trim();if(cleaned.startsWith("```"))cleaned=cleaned.replace(/```json?\n?/g,"").replace(/```$/g,"").trim();
-    const parsed=JSON.parse(cleaned);state.conversationHistory=[...msgs,{role:"assistant",content:text}];return parsed;
+const msgs=isNew?[{role:"user",content:msg}]:[...G.history,{role:"user",content:msg}];
+const res=await fetch("/.netlify/functions/respond-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:SYS,messages:msgs})});
+if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||`API ${res.status}`);}
+const data=await res.json();const text=data.content?.map(c=>c.text||'').join('')||'';
+let clean=text.trim();if(clean.startsWith('```'))clean=clean.replace(/```json?\n?/g,'').replace(/```$/g,'').trim();
+const parsed=JSON.parse(clean);G.history=[...msgs,{role:"assistant",content:text}];return parsed;
 }
 
-/* === LEFT PANEL: CASE FILE === */
-function renderCaseInitial(data){
-    document.getElementById("panel-case").innerHTML=`
-        <div class="case-badge"><span class="case-badge-dot" style="background:${getActiveStep().color}"></span>CASE FILE</div>
-        <h2 class="case-title">${esc(data.title)}</h2>
-        <p class="case-setting">${esc(data.setting)}</p>
-        <div id="case-entries"><div class="case-entry"><p class="case-text">${esc(data.text)}</p></div></div>`;
-}
-function addCaseEntry(html){
-    const entries=document.getElementById("case-entries");
-    entries.insertAdjacentHTML("beforeend",`<div class="case-divider"></div>${html}`);
-    entries.lastElementChild?.scrollIntoView({behavior:"smooth",block:"end"});
-}
-function addCaseResponse(step,text){
-    const s=STEPS.find(st=>st.key===step)||STEPS[0];
-    addCaseEntry(`<div class="case-entry"><div class="case-response" style="border-left-color:${s.color}"><p class="case-response-label">Your response \u2014 ${s.label}</p><p class="case-response-text">${esc(text)}</p></div></div>`);
-}
-function addCaseAssessment(score,text,critical,criticalDetail){
-    const cls=score>=7?"good":score>=4?"mid":"low";
-    let h=`<div class="case-assessment ${cls}"><span class="ca-score ${cls}">${score}/10</span><span class="ca-text">${esc(text)}</span></div>`;
-    if(critical&&criticalDetail)h+=`<div class="case-critical"><p class="case-critical-tag">\u26a0 CRITICAL MISS</p><p class="case-critical-text">${esc(criticalDetail)}</p></div>`;
-    document.getElementById("case-entries").insertAdjacentHTML("beforeend",h);
-}
-function addCaseDevelopment(step,text){
-    const s=STEPS.find(st=>st.key===step)||STEPS[0];
-    addCaseEntry(`<div class="case-entry"><div class="case-step-tag" style="color:${s.color};border-color:${s.color};background:${s.color}10"><span class="case-step-dot" style="background:${s.color}"></span>${s.label.toUpperCase()}</div><p class="case-text">${esc(text)}</p></div>`);
+function renderScene(d,devText){
+const s=curStep();
+let h=`<div class="g-scene"><div class="g-scene-head"><span class="g-scene-dot" style="background:${s.c}"></span><span class="g-scene-step" style="color:${s.c}">${s.n}</span></div>`;
+if(d.title)h+=`<p class="g-scene-title">${esc(d.title)}</p>`;
+if(d.setting)h+=`<p class="g-scene-setting">${esc(d.setting)}</p>`;
+h+=`<p class="g-scene-text" id="scene-text">${esc(d.text)}</p>`;
+if(devText)h+=`<div class="g-scene-update" id="scene-dev">${esc(devText)}</div>`;
+if(d.prompt)h+=`<p class="g-scene-prompt">${esc(d.prompt)}</p>`;
+h+=`</div>`;
+return h;
 }
 
-/* === RIGHT PANEL: WORKSPACE === */
-function showPrompt(prompt){
-    const s=getActiveStep();
-    document.getElementById("panel-work").innerHTML=`
-        <div class="work-prompt">
-            <div class="wp-step-header">
-                <span class="wp-dot" style="background:${s.color}"></span>
-                <span class="wp-step-name" style="color:${s.color}">${s.label}</span>
-                <span class="wp-step-sub">\u2014 ${s.sub}</span>
-            </div>
-            <p class="wp-question">${esc(prompt)}</p>
-            <div class="wp-input-area">
-                <textarea id="user-input" class="wp-textarea" rows="4" placeholder="Describe what you would do..."></textarea>
-                <div class="wp-footer">
-                    <span class="wp-hint">Shift+Enter for new line</span>
-                    <button id="btn-submit" class="wp-submit" style="background:${s.color}" onclick="submitResponse()">Submit \u2192</button>
-                </div>
-            </div>
-        </div>`;
-    const ta=document.getElementById("user-input");
-    ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();submitResponse();}});
-    ta.focus();
+function renderCards(cards){
+if(!cards||!cards.length)return'';
+G.cards=cards;
+return`<div class="g-cards">${cards.map((c,i)=>`<div class="g-card" onclick="playCard('${c.id}',${i})" id="card-${i}"><span class="g-card-num">${c.id}</span><span class="g-card-text">${esc(c.text)}</span></div>`).join('')}</div>`;
 }
+
+function showGame(sceneData,devText){
+const main=document.getElementById('g-main');
+main.innerHTML=renderScene(sceneData,devText)+renderCards(sceneData.cards);
+}
+
 function showAssessing(){
-    document.getElementById("panel-work").innerHTML=`<div class="work-assessing"><div class="wa-dots"><span></span><span></span><span></span></div><p class="wa-label">Assessing your response...</p></div>`;
-}
-function showFeedback(userText,score,assessment,critical,criticalDetail,isFinal){
-    const s=getActiveStep();
-    const bg=score>=7?"#059669":score>=4?"#d97706":"#dc2626";
-    const lc=score>=7?"#059669":score>=4?"#b45309":"#dc2626";
-    const lt=score>=7?"STRONG RESPONSE":score>=4?"ADEQUATE":"NEEDS IMPROVEMENT";
-    let h=`<div class="work-feedback">
-        <p class="wf-your-label">Your Response</p>
-        <div class="wf-your-text">${esc(userText)}</div>
-        <div class="wf-score-row">
-            <div class="wf-score-circle" style="background:${bg}">${score}</div>
-            <div><p class="wf-verdict" style="color:${lc}">${lt}</p><p class="wf-step-tag">${s.label} step</p></div>
-        </div>
-        <p class="wf-assessment">${esc(assessment)}</p>`;
-    if(critical&&criticalDetail)h+=`<div class="wf-critical"><span class="wf-critical-tag">\u26a0 CRITICAL MISS</span><p class="wf-critical-text">${esc(criticalDetail)}</p></div>`;
-    if(!isFinal)h+=`<button class="wf-continue" style="background:${s.color}" onclick="continueToNext()">Continue \u2192</button>`;
-    h+=`</div>`;
-    document.getElementById("panel-work").innerHTML=h;
-}
-function continueToNext(){
-    const fb=state.pendingFeedback;if(!fb)return;
-    state.pendingFeedback=null;
-    addCaseDevelopment(fb.nextStep,fb.devText);
-    state.currentStep=fb.nextStep;
-    updateStep();renderStepJourney();
-    showPrompt(fb.prompt);
+document.querySelectorAll('.g-card').forEach(c=>c.classList.add('disabled'));
+const cards=document.querySelector('.g-cards');
+if(cards)cards.innerHTML=`<div class="g-assessing"><div class="wa-dots"><span></span><span></span><span></span></div><p class="g-assessing-text">Assessing...</p></div>`;
 }
 
-/* === DEBRIEF === */
+function showFeedback(cardEl,cardIdx,score,assessment,critical,critDetail,isFinal,nextData){
+const bg=score>=7?'#059669':score>=4?'#d97706':'#dc2626';
+const vt=score>=7?'Strong':score>=4?'Adequate':'Weak';
+const s=curStep();
+let fbH=`<div class="g-feedback"><div class="g-fb-score" style="background:${bg}">${score}</div><p class="g-fb-verdict" style="color:${bg}">${vt}</p><p class="g-fb-text">${esc(assessment)}</p>`;
+if(critical&&critDetail)fbH+=`<p class="g-fb-crit">\u26a0 ${esc(critDetail)}</p>`;
+if(!isFinal)fbH+=`<button class="g-fb-next" style="background:${s.c}" onclick="nextRound()">Continue \u2192</button>`;
+fbH+=`</div>`;
+// Replace cards area with feedback
+const cards=document.querySelector('.g-cards');
+if(cards){cards.style.position='relative';cards.innerHTML=fbH;}
+}
+
+let pendingNext=null;
+function nextRound(){
+if(!pendingNext)return;
+const d=pendingNext;pendingNext=null;
+G.step=d.nextStep;setCSS();renderProgress();
+const main=document.getElementById('g-main');
+main.innerHTML=renderScene({title:G.title,setting:G.setting,text:d.sceneText,prompt:d.prompt,cards:d.cards},d.devText);
+main.innerHTML+=renderCards(d.cards);
+}
+
+async function startGame(){
+show('scr-loading');document.getElementById('m-err').style.display='none';
+G={step:"RECOGNISE",rag:"GREEN",scores:{},history:[],count:G.count,loading:false,title:"",setting:"",hidden:"",responses:[],journey:[],cards:[],runScore:0,stepsDone:0};
+try{
+const type=TYPES[G.count%TYPES.length];G.count++;
+const d=rnd();
+const data=await callAPI(`Generate a safeguarding scenario. Type: ${type}.\nDemographics (use exactly):\n- Name: ${d.name}\n- Gender: ${d.gender}\n- Origin: ${d.origin}\n- Grade: ${d.grade}\n- Setting: ${d.setting}, ${d.day}\nRespond ONLY valid JSON with 3 action cards (max 12 words each).`,true);
+G.rag=data.severity||"GREEN";G.title=data.title||"";G.setting=data.setting||"";G.hidden=data.hidden_issue||"";
+G.journey.push({type:"scenario",step:"RECOGNISE",title:data.title,setting:data.setting,text:data.initial_observation,prompt:data.prompt_to_user});
+setCSS();renderProgress();updateRAG();updateRunScore();show('scr-game');
+showGame({title:data.title,setting:data.setting,text:data.initial_observation,prompt:data.prompt_to_user,cards:data.cards||[]});
+}catch(err){document.getElementById('m-err').textContent='Failed: '+err.message;document.getElementById('m-err').style.display='block';show('scr-menu');}
+}
+
+async function playCard(id,idx){
+if(G.loading)return;
+const chosen=G.cards.find(c=>c.id===id);if(!chosen)return;
+G.loading=true;
+const submittedStep=G.step;
+showAssessing();
+G.responses.push({step:submittedStep,response:`[${chosen.id}] ${chosen.text}`});
+G.journey.push({type:"response",step:submittedStep,text:`[${chosen.id}] ${chosen.text}`});
+try{
+const data=await callAPI(`User selected card ${chosen.id} at ${submittedStep}: "${chosen.text}"\nAssess and develop the scenario. Conclude if past NOTIFY. ONLY valid JSON with 3 new cards (max 12 words each) unless concluding.`,false);
+if(data.rag_status){G.rag=data.rag_status;updateRAG();}
+if(data.score&&submittedStep!=="COMPLETE"){G.scores[submittedStep]=data.score;G.runScore+=data.score;G.stepsDone++;updateRunScore();}
+const isCrit=data.critical_miss||data.score<=2;
+G.journey.push({type:"assessment",step:submittedStep,score:data.score,text:data.assessment,critical:isCrit,criticalDetail:data.critical_miss_detail||""});
+if(data.case_concluded&&data.final_debrief){
+if(data.current_step){G.step=data.current_step;setCSS();}renderProgress();
+showFeedback(null,0,data.score,data.assessment,isCrit,data.critical_miss_detail,true,null);
+setTimeout(()=>renderDebrief(data),2200);
+}else{
+const nextStep=data.current_step||submittedStep;
+G.journey.push({type:"development",step:nextStep,text:data.next_development,prompt:data.prompt_to_user});
+// Get accumulated scene text
+const sceneParts=G.journey.filter(j=>j.type==="scenario").map(j=>j.text);
+const devParts=G.journey.filter(j=>j.type==="development").map(j=>j.text);
+pendingNext={nextStep,devText:data.next_development,sceneText:sceneParts[0]||"",prompt:data.prompt_to_user,cards:data.cards||[]};
+if(data.current_step){G.step=data.current_step;setCSS();}renderProgress();
+showFeedback(null,0,data.score,data.assessment,isCrit,data.critical_miss_detail,false,pendingNext);
+}
+}catch(err){
+const main=document.getElementById('g-main');
+main.innerHTML+=`<div style="padding:16px;text-align:center;color:#dc2626;font-size:13px">Error: ${esc(err.message)}</div>`;
+setTimeout(()=>showGame({title:G.title,setting:G.setting,text:G.journey.find(j=>j.type==="scenario")?.text||"",prompt:"What would you do?",cards:G.cards}),3000);
+}
+G.loading=false;
+}
+
+function exitGame(){G={...G,step:"RECOGNISE",rag:"GREEN"};show('scr-menu');}
+
 function renderDebrief(data){
-    const d=data.final_debrief;
-    const gcMap={"Outstanding":"#059669","Good":"#2563eb","Requires Improvement":"#d97706","Inadequate":"#dc2626"};
-    const gclr=gcMap[d.grade]||"#333";
-    const sclr=d.overall_score>=75?"#059669":d.overall_score>=50?"#d97706":"#dc2626";
-    document.getElementById("game-panels").className="game-panels debrief-mode";
-    document.getElementById("panel-case").className="panel-case debrief-hidden";
-    let h=`<div class="debrief-wrap"><div class="db-header"><div class="db-dots">${STEPS.map(s=>`<div class="dbd" style="background:${s.color}"></div>`).join("")}</div><p class="db-title-text">Case Debrief</p><p class="db-case-title">${esc(state.scenarioTitle)}</p><div class="db-score-cluster"><div class="db-big-score" style="color:${sclr}">${d.overall_score}<span> / 100</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span class="db-grade-badge" style="color:${gclr};border-color:${gclr}">${d.grade}</span>${ragHtml(d.rag_final)}</div></div></div>`;
-    h+=`<div class="db-steps">`;STEPS.forEach((step,i)=>{const s=d.step_scores?.[step.key];if(!s)return;const c=s.score>=7?"#059669":s.score>=4?"#d97706":"#dc2626";h+=`<div class="db-step-cell" style="animation:fadeUp .4s ${.1+i*.06}s both"><span class="dsc-dot" style="background:${step.color}"></span><span class="dsc-letter">${step.label}</span><span class="dsc-score" style="color:${c}">${s.score}<span>/10</span></span><span class="dsc-fb">${esc(s.feedback)}</span></div>`;});h+=`</div>`;
-    h+=`<div class="db-body"><div class="db-section strengths"><h4 class="db-section-title">\u2713 Strengths</h4>${(d.strengths||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div><div class="db-section areas"><h4 class="db-section-title">\u26a1 Areas for Development</h4>${(d.areas_for_development||[]).map(s=>`<p>${esc(s)}</p>`).join("")}</div><div class="db-section learning"><h4 class="db-section-title">\ud83d\udcda Key Learning</h4><p>${esc(d.key_learning)}</p></div>`;
-    if(d.statutory_references?.length)h+=`<div class="db-section refs"><h4 class="db-section-title">Statutory References</h4>${d.statutory_references.map(r=>`<p>${esc(r)}</p>`).join("")}</div>`;
-    h+=`</div><div class="db-actions"><button class="btn-action secondary" onclick="downloadPDF(lastDebrief)">\ud83d\udcc4 Download Case Record</button><button class="btn-action primary" onclick="startScenario()">Next Scenario \u2192</button><button class="btn-action ghost" onclick="resetGame()">Return to Menu</button></div></div>`;
-    document.getElementById("panel-work").innerHTML=h;
-    lastDebrief=d;logToSheet(d);
+const d=data.final_debrief;
+const gcMap={"Outstanding":"#059669","Good":"#2563eb","Requires Improvement":"#d97706","Inadequate":"#dc2626"};
+const gclr=gcMap[d.grade]||"#333";const sclr=d.overall_score>=75?"#059669":d.overall_score>=50?"#d97706":"#dc2626";
+let h=`<div class="db"><div class="db-head"><div class="db-dots">${ST.map(s=>`<span style="background:${s.c}"></span>`).join('')}</div><p class="db-label">Case Debrief</p><p class="db-title">${esc(G.title)}</p><div class="db-score-row"><div class="db-big" style="color:${sclr}">${d.overall_score}<small>/100</small></div><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="db-grade" style="color:${gclr};border-color:${gclr}">${d.grade}</span>${ragHTML(d.rag_final)}</div></div></div>`;
+h+=`<div class="db-grid">`;ST.forEach((step,i)=>{const s=d.step_scores?.[step.k];if(!s)return;const c=s.score>=7?"#059669":s.score>=4?"#d97706":"#dc2626";h+=`<div class="db-cell" style="animation:fadeUp .3s ${.05+i*.04}s both"><span class="db-cell-dot" style="background:${step.c}"></span><span class="db-cell-letter">${step.n}</span><span class="db-cell-score" style="color:${c}">${s.score}<small>/10</small></span><span class="db-cell-fb">${esc(s.feedback)}</span></div>`;});h+=`</div>`;
+h+=`<div class="db-sections"><div class="db-sec str"><p class="db-sec-title">\u2713 Strengths</p>${(d.strengths||[]).map(s=>`<p>${esc(s)}</p>`).join('')}</div><div class="db-sec dev"><p class="db-sec-title">\u26a1 Development</p>${(d.areas_for_development||[]).map(s=>`<p>${esc(s)}</p>`).join('')}</div><div class="db-sec learn"><p class="db-sec-title">\ud83d\udcda Key Learning</p><p>${esc(d.key_learning)}</p></div>`;
+if(d.statutory_references?.length)h+=`<div class="db-sec refs"><p class="db-sec-title">Statutory References</p>${d.statutory_references.map(r=>`<p>${esc(r)}</p>`).join('')}</div>`;
+h+=`</div><div class="db-actions"><button class="db-btn secondary" onclick="downloadPDF(lastDB)">\ud83d\udcc4 Download PDF</button><button class="db-btn primary" onclick="startGame()">Play Again \u2192</button><button class="db-btn ghost" onclick="show('scr-menu')">Menu</button></div></div>`;
+document.getElementById('scr-debrief').innerHTML=h;
+show('scr-debrief');lastDB=d;logSheet(d);
 }
 
-/* === GAME FLOW === */
-async function startScenario(){
-    showScreen("loading");document.getElementById("menu-error").style.display="none";
-    state.stepScores={};state.currentStep="RECOGNISE";state.ragStatus="GREEN";state.conversationHistory=[];state.loading=false;state.journey=[];state.pendingFeedback=null;
-    document.getElementById("panel-case").innerHTML="";document.getElementById("panel-case").className="panel-case";
-    document.getElementById("panel-work").innerHTML="";document.getElementById("game-panels").className="game-panels";
-    try{
-        const type=SCENARIO_TYPES[state.scenarioCount%SCENARIO_TYPES.length];state.scenarioCount++;
-        const demo=rndDemo();
-        const data=await callAPI(`Generate a new safeguarding training scenario. Type: ${type}.\n\nYou MUST use these exact demographics (non-negotiable):\n- Student name: ${demo.name}\n- Gender: ${demo.gender}\n- Nationality/heritage: ${demo.origin}\n- Grade: ${demo.grade}\n- Setting: ${demo.setting}, ${demo.day}\n\nMake it realistic for an international boarding school. Do NOT reveal the safeguarding issue. Respond with ONLY valid JSON.`,true);
-        state.ragStatus=data.severity||"GREEN";state.scenarioTitle=data.title||"";state.scenarioSetting=data.setting||"";state.hiddenIssue=data.hidden_issue||"";state.userResponses=[];
-        state.journey.push({type:"scenario",step:"RECOGNISE",title:data.title,setting:data.setting,text:data.initial_observation,prompt:data.prompt_to_user});
-        updateRAG();updateStep();renderStepJourney();showScreen("game");
-        renderCaseInitial({title:data.title,setting:data.setting,text:data.initial_observation});
-        showPrompt(data.prompt_to_user);
-    }catch(err){document.getElementById("menu-error").textContent="Failed: "+err.message;document.getElementById("menu-error").style.display="block";showScreen("menu");}
-}
-
-async function submitResponse(){
-    const ta=document.getElementById("user-input");
-    const input=ta?.value.trim();if(!input||state.loading)return;
-    state.loading=true;const submittedStep=state.currentStep;
-    addCaseResponse(submittedStep,input);
-    state.userResponses.push({step:submittedStep,response:input});
-    state.journey.push({type:"response",step:submittedStep,text:input});
-    showAssessing();
-    try{
-        const data=await callAPI(`The user (staff member in training) responded at the ${submittedStep} step:\n\n"${input}"\n\nAssess against RESPOND ${submittedStep} step. Develop scenario further. If enough steps addressed (at least through NOTIFY), conclude. ONLY valid JSON.`,false);
-        if(data.rag_status){state.ragStatus=data.rag_status;updateRAG();}
-        if(data.score&&submittedStep!=="COMPLETE")state.stepScores[submittedStep]=data.score;
-        state.journey.push({type:"assessment",step:submittedStep,score:data.score,text:data.assessment,critical:data.critical_miss||false,criticalDetail:data.critical_miss_detail||""});
-        addCaseAssessment(data.score,data.assessment,data.critical_miss,data.critical_miss_detail);
-        if(data.case_concluded&&data.final_debrief){
-            if(data.current_step){state.currentStep=data.current_step;updateStep();}
-            renderStepJourney();
-            showFeedback(input,data.score,data.assessment,data.critical_miss,data.critical_miss_detail,true);
-            setTimeout(()=>renderDebrief(data),2000);
-        }else{
-            const nextStep=data.current_step||submittedStep;
-            state.journey.push({type:"development",step:nextStep,text:data.next_development,prompt:data.prompt_to_user});
-            state.pendingFeedback={nextStep,devText:data.next_development,prompt:data.prompt_to_user};
-            if(data.current_step){state.currentStep=data.current_step;updateStep();}
-            renderStepJourney();
-            showFeedback(input,data.score,data.assessment,data.critical_miss,data.critical_miss_detail,false);
-        }
-    }catch(err){
-        document.getElementById("panel-work").innerHTML=`<div class="msg-error">Failed: ${esc(err.message)}</div>`;
-        setTimeout(()=>showPrompt(state.journey.filter(j=>j.type==="development"||j.type==="scenario").pop()?.prompt||"What would you do?"),2000);
-    }
-    state.loading=false;
-}
-
-/* === PDF === */
 function downloadPDF(d){
-    const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});const W=210,M=20,CW=W-2*M;let y=20;
-    const colors={r:[37,99,235],e:[5,150,105],s:[217,119,6],p:[220,38,38],o:[202,138,4],n:[2,132,199],d:[124,58,237]};
-    const stepColorMap={RECOGNISE:colors.r,ENGAGE:colors.e,SUPPORT:colors.s,PAUSE:colors.p,OFFER:colors.o,NOTIFY:colors.n,DOCUMENT:colors.d};
-    const footer=()=>{doc.setFontSize(7);doc.setTextColor(160,160,160);doc.text("RESPOND Safeguarding Simulator \u2014 respondsafeguarding.org \u2014 Training purposes only",W/2,290,{align:"center"});};
-    const checkPage=(need)=>{if(y+need>275){footer();doc.addPage();y=20;}};
-    const drawText=(txt,x,maxW,size,style,clr,lh)=>{doc.setFont("helvetica",style||"normal");doc.setFontSize(size||10);doc.setTextColor(clr?clr[0]:60,clr?clr[1]:60,clr?clr[2]:60);const lines=doc.splitTextToSize(txt,maxW||CW);checkPage(lines.length*(lh||4.5)+2);doc.text(lines,x||M,y);y+=lines.length*(lh||4.5);return lines.length;};
-
-    /* COVER */
-    const dotR=3,dotGap=10,dotsW=7*dotR*2+6*dotGap;let dx=(W-dotsW)/2;
-    STEPS.forEach(s=>{const c=colors[s.letter.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(dx+dotR,y+dotR,dotR,"F");dx+=dotR*2+dotGap;});y+=16;
-    doc.setFont("helvetica","bold");doc.setFontSize(24);doc.setTextColor(30,30,30);doc.text("RESPOND",W/2,y,{align:"center"});y+=7;
-    doc.setFontSize(11);doc.setTextColor(120,120,120);doc.text("Safeguarding Simulator \u2014 Case Record",W/2,y,{align:"center"});y+=14;
-    doc.setDrawColor(200,200,200);doc.line(M,y,W-M,y);y+=10;
-    doc.setFont("helvetica","bold");doc.setFontSize(18);doc.setTextColor(30,30,30);doc.text(state.scenarioTitle||"Case Record",W/2,y,{align:"center"});y+=8;
-    doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(120,120,120);doc.text(new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"}),W/2,y,{align:"center"});y+=14;
-    doc.setFillColor(245,245,250);doc.roundedRect(M,y,CW,24,4,4,"F");
-    const sc=d.overall_score>=75?[5,150,105]:d.overall_score>=50?[217,119,6]:[220,38,38];
-    doc.setFont("helvetica","bold");doc.setFontSize(20);doc.setTextColor(sc[0],sc[1],sc[2]);doc.text(`${d.overall_score} / 100`,M+15,y+15);
-    const gc={"Outstanding":[5,150,105],"Good":[37,99,235],"Requires Improvement":[217,119,6],"Inadequate":[220,38,38]};
-    const gclr=gc[d.grade]||[60,60,60];doc.setFontSize(12);doc.setTextColor(gclr[0],gclr[1],gclr[2]);doc.text(d.grade,M+60,y+15);
-    doc.setFontSize(10);doc.setTextColor(100,100,100);doc.text(`RAG: ${d.rag_final}`,M+CW-15,y+15,{align:"right"});y+=32;
-    const cellW=CW/7;
-    STEPS.forEach((step,i)=>{const s=d.step_scores?.[step.key];const cx=M+i*cellW+cellW/2;const c=colors[step.letter.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(cx,y+3,2.5,"F");doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(80,80,80);doc.text(step.letter,cx,y+10,{align:"center"});if(s){const sclr=s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38];doc.setFontSize(11);doc.setTextColor(sclr[0],sclr[1],sclr[2]);doc.text(`${s.score}`,cx,y+17,{align:"center"});}});y+=24;
-    footer();doc.addPage();y=20;
-
-    /* CASE WALKTHROUGH */
-    doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(30,30,30);doc.text("CASE WALKTHROUGH",M,y);y+=3;
-    doc.setDrawColor(37,99,235);doc.setLineWidth(0.8);doc.line(M,y,M+40,y);doc.setLineWidth(0.2);y+=10;
-    let currentStepLabel="";
-    state.journey.forEach(ev=>{
-        const clr=stepColorMap[ev.step]||[80,80,80];
-        const stepObj=STEPS.find(s=>s.key===ev.step)||{label:ev.step};
-        if(ev.type==="scenario"){
-            checkPage(50);doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(clr[0],clr[1],clr[2]);
-            doc.text(`\u25cf  ${stepObj.label.toUpperCase()} \u2014 Initial Scenario`,M,y);y+=7;
-            if(ev.title){drawText(ev.title,M+6,CW-6,12,"bold",[30,30,30]);y+=2;}
-            if(ev.setting){doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(120,120,120);doc.text(ev.setting,M+6,y);y+=5;}
-            drawText(ev.text,M+6,CW-6,10,"normal",[50,50,50],4.5);y+=4;
-            if(ev.prompt){checkPage(12);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(clr[0],clr[1],clr[2]);doc.text("PROMPT:",M+6,y);y+=4;drawText(ev.prompt,M+6,CW-6,10,"normal",[40,40,40],4.5);y+=6;}
-            doc.setDrawColor(220,220,220);doc.line(M,y,W-M,y);y+=8;currentStepLabel=ev.step;
-        }else if(ev.type==="response"){
-            checkPage(18);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(100,100,100);doc.text("YOUR RESPONSE",M+6,y);y+=5;
-            const rl=doc.splitTextToSize(ev.text,CW-12);const rh=rl.length*4.5+6;
-            checkPage(rh);doc.setFillColor(240,243,248);doc.roundedRect(M+4,y-4,CW-4,rh,3,3,"F");
-            doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(40,40,40);doc.text(rl,M+8,y);y+=rh+2;
-        }else if(ev.type==="assessment"){
-            checkPage(22);const sclr=ev.score>=7?[5,150,105]:ev.score>=4?[217,119,6]:[220,38,38];
-            const verdict=ev.score>=7?"STRONG RESPONSE":ev.score>=4?"ADEQUATE":"NEEDS IMPROVEMENT";
-            doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(sclr[0],sclr[1],sclr[2]);doc.text(`${ev.score}/10`,M+6,y);
-            doc.setFontSize(9);doc.text(verdict,M+20,y);y+=5;
-            drawText(ev.text,M+6,CW-6,9,"normal",[80,80,80],4);y+=2;
-            if(ev.critical&&ev.criticalDetail){
-                checkPage(14);const cmL=doc.splitTextToSize(ev.criticalDetail,CW-16);const cmH=cmL.length*4+8;
-                doc.setFillColor(255,240,240);doc.roundedRect(M+4,y-2,CW-4,cmH,3,3,"F");doc.setDrawColor(220,60,60);doc.roundedRect(M+4,y-2,CW-4,cmH,3,3,"S");
-                doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(220,38,38);doc.text("\u26a0 CRITICAL MISS",M+8,y+2);y+=6;
-                doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(180,30,30);doc.text(cmL,M+8,y);y+=cmL.length*4+4;
-            }
-            doc.setDrawColor(220,220,220);doc.line(M,y,W-M,y);y+=8;
-        }else if(ev.type==="development"){
-            if(ev.step!==currentStepLabel){checkPage(12);const dc=stepColorMap[ev.step]||[80,80,80];const dObj=STEPS.find(s=>s.key===ev.step)||{label:ev.step};doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(dc[0],dc[1],dc[2]);doc.text(`\u25cf  ${dObj.label.toUpperCase()}`,M,y);y+=7;currentStepLabel=ev.step;}
-            if(ev.text){drawText(ev.text,M+6,CW-6,10,"normal",[50,50,50],4.5);y+=4;}
-            if(ev.prompt){checkPage(12);const pC=stepColorMap[ev.step]||[80,80,80];doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(pC[0],pC[1],pC[2]);doc.text("PROMPT:",M+6,y);y+=4;drawText(ev.prompt,M+6,CW-6,10,"normal",[40,40,40],4.5);y+=6;}
-        }
-    });
-
-    /* DEBRIEF */
-    footer();doc.addPage();y=20;
-    dx=(W-dotsW)/2;STEPS.forEach(s=>{const c=colors[s.letter.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(dx+dotR,y+dotR,dotR,"F");dx+=dotR*2+dotGap;});y+=14;
-    doc.setFont("helvetica","bold");doc.setFontSize(16);doc.setTextColor(30,30,30);doc.text("DEBRIEF ANALYSIS",W/2,y,{align:"center"});y+=12;
-    STEPS.forEach(step=>{const s=d.step_scores?.[step.key];if(!s)return;checkPage(16);const c=colors[step.letter.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(M+3,y+3,2.5,"F");doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(30,30,30);doc.text(step.label,M+9,y+4.5);const sclr=s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38];doc.setTextColor(sclr[0],sclr[1],sclr[2]);doc.text(`${s.score}/10`,M+45,y+4.5);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(80,80,80);const lines=doc.splitTextToSize(s.feedback,CW-55);doc.text(lines,M+55,y+4.5);y+=Math.max(10,lines.length*4+6);});y+=6;
-    checkPage(20);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(5,150,105);doc.text("\u2713 Strengths",M,y);y+=6;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);(d.strengths||[]).forEach(s=>{const l=doc.splitTextToSize(`\u2022 ${s}`,CW);checkPage(l.length*4+3);doc.text(l,M+4,y);y+=l.length*4+3;});y+=4;
-    checkPage(20);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(255,107,53);doc.text("\u26a1 Areas for Development",M,y);y+=6;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);(d.areas_for_development||[]).forEach(s=>{const l=doc.splitTextToSize(`\u2022 ${s}`,CW);checkPage(l.length*4+3);doc.text(l,M+4,y);y+=l.length*4+3;});y+=4;
-    checkPage(16);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(37,99,235);doc.text("Key Learning",M,y);y+=6;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);const kl=doc.splitTextToSize(d.key_learning,CW);checkPage(kl.length*4+4);doc.text(kl,M,y);y+=kl.length*4+6;
-    if(d.statutory_references?.length){checkPage(12);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(120,120,120);doc.text("STATUTORY REFERENCES",M,y);y+=5;doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(140,140,140);d.statutory_references.forEach(r=>{const l=doc.splitTextToSize(r,CW);checkPage(l.length*3.5+3);doc.text(l,M,y);y+=l.length*3.5+3;});}
-    footer();
-    doc.save(`RESPOND_Case_Record_${state.scenarioTitle.replace(/[^a-zA-Z0-9]/g,"_").substring(0,30)}_${new Date().toISOString().slice(0,10)}.pdf`);
+if(!d)return;
+const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});const W=210,M=20,CW=W-2*M;let y=20;
+const colors={r:[37,99,235],e:[5,150,105],s:[217,119,6],p:[220,38,38],o:[202,138,4],n:[2,132,199],d:[124,58,237]};
+const ft=()=>{doc.setFontSize(7);doc.setTextColor(160,160,160);doc.text("RESPOND Safeguarding Simulator \u2014 respondsafeguarding.org",W/2,290,{align:"center"});};
+const cp=(n)=>{if(y+n>275){ft();doc.addPage();y=20;}};
+const dotR=3,dotG=10,dW=7*dotR*2+6*dotG;let dx=(W-dW)/2;
+ST.forEach(s=>{const c=colors[s.l.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(dx+dotR,y+dotR,dotR,"F");dx+=dotR*2+dotG;});y+=16;
+doc.setFont("helvetica","bold");doc.setFontSize(22);doc.setTextColor(30,30,30);doc.text("RESPOND \u2014 Case Record",W/2,y,{align:"center"});y+=8;
+doc.setFontSize(10);doc.setTextColor(120,120,120);doc.text(`${G.title} | ${new Date().toLocaleDateString("en-GB")}`,W/2,y,{align:"center"});y+=14;
+doc.setFillColor(245,245,250);doc.roundedRect(M,y,CW,22,4,4,"F");
+const sc=d.overall_score>=75?[5,150,105]:d.overall_score>=50?[217,119,6]:[220,38,38];
+doc.setFont("helvetica","bold");doc.setFontSize(18);doc.setTextColor(sc[0],sc[1],sc[2]);doc.text(`${d.overall_score}/100`,M+15,y+14);
+const gc={"Outstanding":[5,150,105],"Good":[37,99,235],"Requires Improvement":[217,119,6],"Inadequate":[220,38,38]};
+const gclr=gc[d.grade]||[60,60,60];doc.setFontSize(12);doc.setTextColor(gclr[0],gclr[1],gclr[2]);doc.text(d.grade,M+55,y+14);y+=30;
+ST.forEach(step=>{const s=d.step_scores?.[step.k];if(!s)return;cp(14);const c=colors[step.l.toLowerCase()];doc.setFillColor(c[0],c[1],c[2]);doc.circle(M+3,y+3,2.5,"F");doc.setFont("helvetica","bold");doc.setFontSize(10);doc.setTextColor(30,30,30);doc.text(step.n,M+9,y+4.5);const sclr=s.score>=7?[5,150,105]:s.score>=4?[217,119,6]:[220,38,38];doc.setTextColor(sclr[0],sclr[1],sclr[2]);doc.text(`${s.score}/10`,M+45,y+4.5);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(80,80,80);const lines=doc.splitTextToSize(s.feedback,CW-55);doc.text(lines,M+55,y+4.5);y+=Math.max(10,lines.length*4+6);});y+=6;
+cp(16);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(5,150,105);doc.text("Strengths",M,y);y+=5;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);(d.strengths||[]).forEach(s=>{const l=doc.splitTextToSize(`\u2022 ${s}`,CW);cp(l.length*4+3);doc.text(l,M+4,y);y+=l.length*4+3;});y+=4;
+cp(16);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(217,119,6);doc.text("Areas for Development",M,y);y+=5;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);(d.areas_for_development||[]).forEach(s=>{const l=doc.splitTextToSize(`\u2022 ${s}`,CW);cp(l.length*4+3);doc.text(l,M+4,y);y+=l.length*4+3;});y+=4;
+cp(16);doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(37,99,235);doc.text("Key Learning",M,y);y+=5;doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(60,60,60);const kl=doc.splitTextToSize(d.key_learning,CW);cp(kl.length*4+4);doc.text(kl,M,y);y+=kl.length*4+6;
+if(d.statutory_references?.length){cp(12);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(120,120,120);doc.text("STATUTORY REFERENCES",M,y);y+=4;doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(140,140,140);d.statutory_references.forEach(r=>{const l=doc.splitTextToSize(r,CW);cp(l.length*3.5+3);doc.text(l,M,y);y+=l.length*3.5+3;});}
+ft();doc.save(`RESPOND_${G.title.replace(/[^a-zA-Z0-9]/g,"_").substring(0,25)}_${new Date().toISOString().slice(0,10)}.pdf`);
 }
-
-/* === SHEET LOGGING === */
-async function logToSheet(d){
-    if(!GOOGLE_SHEET_WEBHOOK)return;
-    try{const payload={timestamp:new Date().toISOString(),scenario_title:state.scenarioTitle,scenario_setting:state.scenarioSetting,hidden_issue:state.hiddenIssue,overall_score:d.overall_score,grade:d.grade,rag_final:d.rag_final,score_recognise:d.step_scores?.RECOGNISE?.score||"",score_engage:d.step_scores?.ENGAGE?.score||"",score_support:d.step_scores?.SUPPORT?.score||"",score_pause:d.step_scores?.PAUSE?.score||"",score_offer:d.step_scores?.OFFER?.score||"",score_notify:d.step_scores?.NOTIFY?.score||"",score_document:d.step_scores?.DOCUMENT?.score||"",strengths:(d.strengths||[]).join(" | "),areas_for_development:(d.areas_for_development||[]).join(" | "),key_learning:d.key_learning||"",statutory_references:(d.statutory_references||[]).join(" | "),user_responses:state.userResponses.map(r=>`[${r.step}] ${r.response}`).join(" || "),scenario_text:state.journey.find(j=>j.type==="scenario")?.text||"",critical_misses:state.journey.filter(j=>j.type==="assessment"&&j.critical).map(j=>`[${j.step}] ${j.criticalDetail}`).join(" || ")};
-    navigator.sendBeacon(GOOGLE_SHEET_WEBHOOK,new Blob([JSON.stringify(payload)],{type:"text/plain"}));
-    }catch(e){console.warn("Sheet log failed:",e);}
+function logSheet(d){
+if(!SHEET_URL)return;
+try{const p={timestamp:new Date().toISOString(),scenario_title:G.title,scenario_setting:G.setting,hidden_issue:G.hidden,overall_score:d.overall_score,grade:d.grade,rag_final:d.rag_final,score_r:d.step_scores?.RECOGNISE?.score||"",score_e:d.step_scores?.ENGAGE?.score||"",score_s:d.step_scores?.SUPPORT?.score||"",score_p:d.step_scores?.PAUSE?.score||"",score_o:d.step_scores?.OFFER?.score||"",score_n:d.step_scores?.NOTIFY?.score||"",score_d:d.step_scores?.DOCUMENT?.score||"",strengths:(d.strengths||[]).join(" | "),areas:(d.areas_for_development||[]).join(" | "),key_learning:d.key_learning||"",refs:(d.statutory_references||[]).join(" | "),responses:G.responses.map(r=>`[${r.step}] ${r.response}`).join(" || "),scenario_text:G.journey.find(j=>j.type==="scenario")?.text||"",critical:G.journey.filter(j=>j.type==="assessment"&&j.critical).map(j=>`[${j.step}] ${j.criticalDetail}`).join(" || ")};
+navigator.sendBeacon(SHEET_URL,new Blob([JSON.stringify(p)],{type:"text/plain"}));
+}catch(e){console.warn("Sheet fail:",e);}
 }
-
 document.addEventListener("DOMContentLoaded",initUI);
+
 </script>
 </body>
 </html>
