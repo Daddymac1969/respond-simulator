@@ -10,8 +10,8 @@ function authenticated(event){
   const secret=process.env.SIMULATOR_ACCESS_SECRET;
   const supplied=(event.headers?.["x-simulator-access"]||event.headers?.["X-Simulator-Access"]||"");
   if(!secret||!supplied||typeof supplied!=="string")return false;
-  const a=createHmac("sha256",secret).update("simulator").digest();
-  const b=createHmac("sha256",supplied).update("simulator").digest();
+  const a=createHmac("sha256",secret).update("access").digest();
+  const b=createHmac("sha256",supplied).update("access").digest();
   return timingSafeEqual(a,b);
 }
 function validate(body){
