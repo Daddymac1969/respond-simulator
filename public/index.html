@@ -239,6 +239,7 @@ let usedN=[];function pk(a){return a[Math.floor(Math.random()*a.length)]}functio
 const SYS="You are the RESPOND Safeguarding Training Simulator \u2014 a game engine for interactive safeguarding training in UK international boarding schools. The RESPOND Framework is from respondsafeguarding.org.\n\n## YOUR ROLE\nGuide staff through realistic safeguarding scenarios as a card-based game. Each round = one RESPOND step. Players choose action cards. You assess and develop the story.\n\n## THE RESPOND FRAMEWORK (7 Steps)\nR \u2013 RECOGNISE: Identify signs. Professional curiosity. Context factors (people/places/platforms/patterns).\nE \u2013 ENGAGE: Empathetic communication. TED questions (Tell/Explain/Describe, NOT \"why\"). \"I believe you. This is not your fault.\"\nS \u2013 SUPPORT: Immediate emotional/practical help. Validate without investigating. Safety check. Private space.\nP \u2013 PAUSE: Internal mental checkpoint (NOT going silent). Three Lenses: Risk, Rights, Resources. Don't investigate/promise secrecy/blame.\nO \u2013 OFFER: Explain next steps. DSL notification, possible agencies. Only offer what you can deliver.\nN \u2013 NOTIFY: DSL within 30 mins (immediately if crime). Report: time, details, disclosure, safety concerns.\nD \u2013 DOCUMENT: Record within 30 mins. Exact quotes. GOLD format (Ground, Observe, Language, Do).\n\n## RAG THRESHOLDS\nGREEN: Low-level, monitor. AMBER: Escalating, DSL assesses. RED: Immediate risk, DSL NOW.\n\n## GAME FORMAT \u2014 ACTION CARDS\n\n### Generating a scenario:\nCreate a realistic scenario. Respond with ONLY valid JSON:\n{\n  \"scenario_id\": \"unique_id\",\n  \"title\": \"Brief evocative title\",\n  \"setting\": \"Where/when \u2014 keep short\",\n  \"initial_observation\": \"What you see/hear \u2014 2-3 sentences MAX. Vivid. No labels.\",\n  \"hidden_issue\": \"FOR SCORING ONLY\",\n  \"severity\": \"GREEN|AMBER|RED\",\n  \"key_indicators\": [\"i1\",\"i2\",\"i3\"],\n  \"respond_step\": \"RECOGNISE\",\n  \"prompt_to_user\": \"Short question \u2014 max 12 words\",\n  \"cards\": [\n    {\"id\":\"1\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"best\"},\n    {\"id\":\"2\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"mid\"},\n    {\"id\":\"3\",\"text\":\"Short action \u2014 max 12 words\",\"quality\":\"poor\"}\n  ]\n}\n\n### CARD DESIGN RULES \u2014 CRITICAL:\n- Exactly 3 cards per round\n- Each card text MUST be 12 words or fewer \u2014 these are ACTION PHRASES not paragraphs\n- One card = best response (score 8-10)\n- One card = adequate but flawed (score 5-7)\n- One card = poor/dangerous choice (score 1-4, may trigger critical_miss)\n- RANDOMISE card order \u2014 best card should NOT always be in the same slot\n- Cards should read like game actions: \"Approach calmly and ask open questions\" not \"You should consider approaching the student in a calm manner and asking them open-ended questions\"\n- All 3 must be plausible things a real staff member might do\n\n### After user selects a card:\n{\n  \"score\": 1-10,\n  \"assessment\": \"1 sentence feedback\",\n  \"respond_step_met\": true/false,\n  \"critical_miss\": false,\n  \"critical_miss_detail\": \"\",\n  \"next_development\": \"Story develops \u2014 1-2 sentences MAX\",\n  \"current_step\": \"NEXT_STEP\",\n  \"prompt_to_user\": \"Next question \u2014 max 12 words\",\n  \"cards\": [\n    {\"id\":\"1\",\"text\":\"max 12 words\",\"quality\":\"best\"},\n    {\"id\":\"2\",\"text\":\"max 12 words\",\"quality\":\"mid\"},\n    {\"id\":\"3\",\"text\":\"max 12 words\",\"quality\":\"poor\"}\n  ],\n  \"case_concluded\": false,\n  \"rag_status\": \"GREEN|AMBER|RED\"\n}\n\n### Concluding (after NOTIFY step minimum):\n{\n  \"score\": 1-10,\n  \"assessment\": \"Final feedback\",\n  \"respond_step_met\": true,\n  \"case_concluded\": true,\n  \"final_debrief\": {\n    \"overall_score\": 1-100,\n    \"grade\": \"Outstanding|Good|Requires Improvement|Inadequate\",\n    \"rag_final\": \"GREEN|AMBER|RED\",\n    \"step_scores\": {\n      \"RECOGNISE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"ENGAGE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"SUPPORT\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"PAUSE\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"OFFER\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"NOTIFY\":{\"score\":1-10,\"feedback\":\"1 sentence\"},\n      \"DOCUMENT\":{\"score\":1-10,\"feedback\":\"1 sentence\"}\n    },\n    \"strengths\": [\"s1\",\"s2\"],\n    \"areas_for_development\": [\"a1\",\"a2\"],\n    \"key_learning\": \"Key takeaway \u2014 1-2 sentences\",\n    \"statutory_references\": [\"ref1\",\"ref2\"]\n  },\n  \"cards\": [],\n  \"next_development\": \"\",\n  \"current_step\": \"COMPLETE\",\n  \"prompt_to_user\": \"\"\n}\n\n## RULES\n- Never reveal hidden issue until debrief\n- Card text MUST be 12 words or fewer \u2014 this is critical for the game UI\n- Keep ALL text concise \u2014 this is a fast-paced game\n- Use: Grade not Year, Faculty not teachers, Campus not school grounds, Dorm not house, Semester not term\n- ANTI-BIAS: Use exact demographics from prompt. Never link issues stereotypically to ethnicity.";
 
 const SHEET_URL="";
+let simulatorAccessCode=""; // In-memory only.
 let G={step:"RECOGNISE",rag:"GREEN",scores:{},history:[],count:0,loading:false,title:"",setting:"",hidden:"",responses:[],journey:[],cards:[],runScore:0,stepsDone:0};
 let lastDB=null;
 function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML;}
@@ -267,8 +268,9 @@ return`<div class="g-prog-step ${cls}"><span class="g-prog-dot" style="backgroun
 }
 
 async function callAPI(msg,isNew){
+if(!simulatorAccessCode)throw new Error("Access code required");
 const msgs=isNew?[{role:"user",content:msg}]:[...G.history,{role:"user",content:msg}];
-const res=await fetch("/.netlify/functions/respond-api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,system:SYS,messages:msgs})});
+const res=await fetch("/.netlify/functions/respond-api",{method:"POST",headers:{"Content-Type":"application/json","X-Simulator-Access":simulatorAccessCode},body:JSON.stringify({messages:msgs})});
 if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||`API ${res.status}`);}
 const data=await res.json();const text=data.content?.map(c=>c.text||'').join('')||'';
 let clean=text.trim();if(clean.startsWith('```'))clean=clean.replace(/```json?\n?/g,'').replace(/```$/g,'').trim();
@@ -288,14 +290,17 @@ return h;
 }
 
 function renderCards(cards){
-if(!cards||!cards.length)return'';
+if(!Array.isArray(cards)||cards.length!==3)return '';
 G.cards=cards;
-return`<div class="g-cards">${cards.map((c,i)=>`<div class="g-card" onclick="playCard('${c.id}',${i})" id="card-${i}"><span class="g-card-num">${c.id}</span><span class="g-card-text">${esc(c.text)}</span></div>`).join('')}</div>`;
+return '<div class="g-cards">'+cards.map((c,i)=>'<div class="g-card" data-card-index="'+i+'" id="card-'+i+'"><span class="g-card-num">'+esc(String(c.id))+'</span><span class="g-card-text">'+esc(String(c.text))+'</span></div>').join('')+'</div>';
+}
+function bindCards(){
+document.querySelectorAll(".g-card").forEach(el=>el.addEventListener("click",()=>{const i=Number(el.dataset.cardIndex);if(G.cards[i])playCard(G.cards[i].id,i);}));
 }
 
 function showGame(sceneData,devText){
 const main=document.getElementById('g-main');
-main.innerHTML=renderScene(sceneData,devText)+renderCards(sceneData.cards);
+main.innerHTML=renderScene(sceneData,devText)+renderCards(sceneData.cards);bindCards();
 }
 
 function showAssessing(){
@@ -324,10 +329,11 @@ const d=pendingNext;pendingNext=null;
 G.step=d.nextStep;setCSS();renderProgress();
 const main=document.getElementById('g-main');
 main.innerHTML=renderScene({title:G.title,setting:G.setting,text:d.sceneText,prompt:d.prompt,cards:d.cards},d.devText);
-main.innerHTML+=renderCards(d.cards);
+main.innerHTML+=renderCards(d.cards);bindCards();
 }
 
 async function startGame(){
+if(!simulatorAccessCode){simulatorAccessCode=window.prompt('Enter simulator access code')||'';if(!simulatorAccessCode)return;}
 show('scr-loading');document.getElementById('m-err').style.display='none';
 G={step:"RECOGNISE",rag:"GREEN",scores:{},history:[],count:G.count,loading:false,title:"",setting:"",hidden:"",responses:[],journey:[],cards:[],runScore:0,stepsDone:0};
 try{
