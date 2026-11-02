@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RESPOND | Authored safeguarding practice</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#172338;background:#f7f8fa}*{box-sizing:border-box}
+main{max-width:780px;margin:32px auto;padding:20px}header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.dots{display:flex;gap:5px}.dots span{width:12px;height:12px;border-radius:50%;display:block}
+.card{background:white;border:1px solid #dce2eb;border-radius:16px;padding:26px;box-shadow:0 4px 18px #1723380a}
+button{font:inherit;cursor:pointer;border:1px solid #b7c4d5;border-radius:10px;background:white;padding:14px;text-align:left;width:100%;margin:8px 0}
+button:hover,button:focus-visible{outline:2px solid #287bc9}button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:#1e3d6f;color:white;text-align:center;border:0;font-weight:600}
+small,.muted{color:#526277}h1{font-size:1.5rem}h2{font-size:1.2rem}#feedback{border-left:4px solid #287bc9;padding:10px 15px;margin:16px 0;background:#eef4ff}
+footer{margin-top:20px;font-size:.85rem;color:#526277}.sr{position:absolute;left:-9999px}
+</style></head><body><main><header><div class="dots" aria-hidden="true">
+<span style="background:#0f172a"></span><span style="background:#235e4b"></span><span style="background:#a4684e"></span>
+<span style="background:#cd372b"></span><span style="background:#ebaf24"></span><span style="background:#287bc9"></span><span style="background:#8625eb"></span></div>
+<strong>RESPOND Safeguarding</strong></header>
+<h1>Authored safeguarding practice</h1>
+<p class="muted">Fictional training case. This version uses a fixed answer key rather than AI-generated scores. It is not an assessment of professional competence or a substitute for reporting a real concern.</p>
+<section class="card" id="panel" aria-live="polite"></section>
+<footer>Draft learning exercise. Requires safeguarding lead review before assessed use. No answers are transmitted or saved by this page. <a href="/">Return to simulator</a></footer>
+</main><script src="/authored-practice.js"></script><script>
+(()=>{
+const {CASE,evaluate}=window.RESPOND_AUTHORED;
+const panel=document.getElementById("panel");const answers=[];let index=-1;
+function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
+function button(text,fn,cls){const b=el("button",text,cls);b.type="button";b.addEventListener("click",fn);return b;}
+function render(){
+ panel.replaceChildren();
+ if(index===-1){panel.append(el("h2",CASE.title),el("p",CASE.setting),el("p",CASE.introduction),button("Begin practice",()=>{index=0;render()},"primary"));return;}
+ if(index===CASE.steps.length){
+ const result=evaluate(CASE,answers);
+ panel.append(el("h2","Practice debrief"),el("p","Completed "+result.steps.length+" decisions. Practice points: "+result.points+" of "+result.max+"."));
+ for(const s of result.steps){panel.append(el("h3",s.step),el("p",s.feedback));}
+ panel.append(el("p",result.note),button("Try again",()=>{answers.length=0;index=-1;render()},"primary"));return;
+ }
+ const step=CASE.steps[index];panel.append(el("small","Decision "+(index+1)+" of "+CASE.steps.length),el("h2",step.step),el("p",step.question));
+ for(const option of step.options){panel.append(button(option.text,()=>{
+  answers[index]=option.id;index++;render();
+ }));}
+}
+render();
+})();
+</script></body></html>

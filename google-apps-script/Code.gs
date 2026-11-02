@@ -7,7 +7,7 @@
  * 3. Paste this entire script into Code.gs
  * 4. Click Deploy → New deployment → Web app
  *    - Execute as: Me
- *    - Who has access: Anyone
+ *    - Do not deploy publicly; ingestion is intentionally disabled pending DPO/IT review
  * 5. Copy the Web app URL
  * 6. Paste it into GOOGLE_SHEET_WEBHOOK in your simulator's index.html
  * 7. Redeploy on Netlify
@@ -18,29 +18,15 @@
  * (Deploy → New deployment), not just save. GAS caches old versions.
  */
 
+// Disabled until a server-authenticated ingestion service is approved.
+// Never expose an execute-as-owner spreadsheet writer to unauthenticated browsers.
 function doPost(e) {
-  try {
-    var raw = e.postData.contents;
-    var data = JSON.parse(raw);
-    return writeRow(data);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  return ContentService.createTextOutput(JSON.stringify({status:"disabled"}))
+    .setMimeType(ContentService.MimeType.JSON);
 }
-
 function doGet(e) {
-  try {
-    if (e.parameter.payload) {
-      var data = JSON.parse(decodeURIComponent(e.parameter.payload));
-      return writeRow(data);
-    }
-    return ContentService.createTextOutput(JSON.stringify({status: "ok", message: "RESPOND Logger active"}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  return ContentService.createTextOutput(JSON.stringify({status:"disabled"}))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function writeRow(data) {
